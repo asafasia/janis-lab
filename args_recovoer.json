@@ -1,0 +1,53 @@
+{
+    "qubit1": {
+        "qubit": {
+            "IQ_input": {
+                "I": 3,
+                "Q": 4
+            },
+            "IQ_bias": {
+                "I": 0.1,
+                "Q": 0.2
+            },
+            "qubit_correction_matrix": [
+                0.1,
+                0.1,
+                0.1,
+                0.2
+            ],
+            "qubit_LO": 5000000000.0,
+            "qubit_IF": 150000000.0,
+            "qubit_freq": 5100000000.0,
+            "pi_pulse_length": 40,
+            "spectroscopy_pulse_length": 1000,
+            "spectroscopy_pulse_amplitude": 0.1,
+            "qubit_anharmonicity": -300000000.0,
+            "qubit_T1": 0.0001,
+            "qubit_T2": 0.00012
+        },
+        "resonator": {
+            "IQ_input": {
+                "I": 1,
+                "Q": 2
+            },
+            "IQ_bias": {
+                "I": -0.026277901785714288,
+                "Q": -0.01883370535714286
+            },
+            "resonator_correction_matrix": [
+                -0.92686325,
+                -0.45689567,
+                0.57371573,
+                -0.94968765
+            ],
+            "resonator_LO": 5000000000.0,
+            "resonator_IF": 150000000.0,
+            "resonator_freq": 0,
+            "readout_pulse_length": 2000,
+            "readout_pulse_amplitude": 0.1
+        },
+        "else": {
+            "const_length": 1000
+        }
+    }
+}
