@@ -107,7 +107,7 @@ config = {
                 "out2": (con, 2),
             },
             "time_of_flight": time_of_flight,
-            "smearing": 100,
+            "smearing": 0,
 
         },
     },
@@ -126,12 +126,13 @@ config = {
             "operation": "measurement",
             "length": readout_pulse_length,
             "waveforms": {
-                "I": "const_wf",
+                "I": "readout_wf",
                 "Q": "zero_wf"
             },
             "integration_weights": {
                 "cos": "cosine_weights",
-                "sin": "cosine_weights"
+                "sin": "cosine_weights",
+                "minus_sin": "minus_sine_weights"
             },
             "digital_marker": "ON"
 
@@ -174,7 +175,11 @@ config = {
         "sine_weights": {
             "cosine": [(0.0, readout_pulse_length)],
             "sine": [(1.0, readout_pulse_length)]
-        }
+        },
+        "minus_sine_weights": {
+            "cosine": [(0.0, readout_pulse_length)],
+            "sine": [(-1.0, readout_pulse_length)],
+        },
     }
 
 }

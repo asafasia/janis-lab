@@ -1,7 +1,7 @@
 from qm import QuantumMachinesManager
 from qm.qua import *
 from configuration import *
-from get_traces import plot_traces
+from get_traces_spectrum import plot_traces
 from instruments_py27.spectrum_analyzer import N9010A_SA
 from pprint import pprint
 

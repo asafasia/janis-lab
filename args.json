@@ -31,8 +31,8 @@
                 "Q": 2
             },
             "IQ_bias": {
-                "I": -0.02634662828947369,
-                "Q": -0.01884251644736842
+                "I": 0,
+                "Q": -0.0
             },
             "resonator_correction_matrix": [
                 1.026852323240639,
@@ -44,7 +44,7 @@
             "resonator_IF": 112341234.0,
             "resonator_freq": 0,
             "readout_pulse_length": 500,
-            "readout_pulse_amplitude": 0.1,
+            "readout_pulse_amplitude": 0.005,
             "time_of_flight": 200
         },
         "else": {

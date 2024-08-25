@@ -25,22 +25,19 @@ with program() as raw_trace_prog:
     adc_st = declare_stream(adc_trace=True)  # The stream to store the raw ADC trace
     I = declare(fixed)  # QUA variable for the measured 'I' quadrature
     Q = declare(fixed)  # QUA variable for the measured 'Q' quadrature
-
+    I_st = declare_stream()  # Stream for the 'I' quadrature
     with for_(n, 0, n < n_avg, n + 1):  # QUA for_ loop for averaging
         # Make sure that the readout pulse is sent with the same phase so that the acquired signal does not average out
         reset_phase("resonator")
         # Measure the resonator (send a readout pulse and record the raw ADC trace)
-        measure("readout", "resonator", adc_st)
+        measure("readout", "resonator", None, demod.full('cos', I, 'out1'))
         # Wait for the resonator to deplete
         wait(depletion_time * u.ns, "resonator")
 
     with stream_processing():
         # Will save average:
-        adc_st.input1().average().save("adc1")
-        adc_st.input2().average().save("adc2")
-        # Will save only last run:
-        adc_st.input1().save("adc1_single_run")
-        adc_st.input2().save("adc2_single_run")
+        I_st.buffer(len(frequencies)).average().save("I")
+
 
 #####################################
 #  Open Communication with the QOP  #

@@ -7,7 +7,7 @@ from instruments_py27.spectrum_analyzer import N9010A_SA
 from configuration import *
 from qm.qua import *
 from change_args import modify_json
-from get_traces import plot_traces
+from get_traces_spectrum import plot_traces
 
 I_FIG_NUM = 1
 Q_FIG_NUM = 2

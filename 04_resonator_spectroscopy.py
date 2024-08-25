@@ -29,11 +29,11 @@ from scipy import signal
 ###################
 # The QUA program #
 ###################
-n_avg = 1000  # The number of averages
+n_avg = 100  # The number of averages
 # The frequency sweep parameters
 f_min = 30 * u.MHz
 f_max = 70 * u.MHz
-df = 100 * u.kHz
+df = 50 * u.kHz
 frequencies = np.arange(f_min, f_max + 0.1, df)  # The frequency vector (+ 0.1 to add f_max to frequencies)
 
 with program() as resonator_spec:
@@ -54,8 +54,8 @@ with program() as resonator_spec:
                 "readout",
                 "resonator",
                 None,
-                demod.full("cos", I, "out1"),
-                demod.full("sin", Q, "out2"),
+                dual_demod.full('cos', 'out1', 'sin', 'out2', I),
+                dual_demod.full('minus_sin', 'out1', 'cos', 'out2', Q)
             )
             # Wait for the resonator to deplete
             wait(depletion_time * u.ns, "resonator")

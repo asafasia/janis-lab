@@ -50,8 +50,6 @@ if __name__ == "__main__":
 
     qm = qmm.open_qm(config)
 
-    pprint(config)
-
     with program() as prog:
         with infinite_loop_():
             play("readout", "resonator")
