@@ -54,8 +54,8 @@ with program() as resonator_spec:
                 "readout",
                 "resonator",
                 None,
-                dual_demod.full("cos", "sin", I),
-                dual_demod.full("minus_sin", "cos", Q),
+                demod.full("cos", I, "out1"),
+                demod.full("sin", Q, "out2"),
             )
             # Wait for the resonator to deplete
             wait(depletion_time * u.ns, "resonator")
@@ -95,42 +95,44 @@ else:
     # Send the QUA program to the OPX, which compiles and executes it
     job = qm.execute(resonator_spec)
     # Get results from QUA program
-    # results = fetching_tool(job, data_list=["I", "Q", "iteration"], mode="live")
-    # # Live plotting
-    # fig = plt.figure()
-    # interrupt_on_close(fig, job)  # Interrupts the job when closing the figure
-    # while results.is_processing():
-    #     # Fetch results
-    #     I, Q, iteration = results.fetch_all()
-    #     # Convert results into Volts
-    #     S = u.demod2volts(I + 1j * Q, readout_len)
-    #     R = np.abs(S)  # Amplitude
-    #     phase = np.angle(S)  # Phase
-    #     # Progress bar
-    #     progress_counter(iteration, n_avg, start_time=results.get_start_time())
-    #     # Plot results
-    #     plt.suptitle(f"Resonator spectroscopy - LO = {resonator_LO / u.GHz} GHz")
-    #     ax1 = plt.subplot(211)
-    #     plt.cla()
-    #     plt.plot(frequencies / u.MHz, R, ".")
-    #     plt.ylabel(r"$R=\sqrt{I^2 + Q^2}$ [V]")
-    #     plt.subplot(212, sharex=ax1)
-    #     plt.cla()
-    #     plt.plot(frequencies / u.MHz, signal.detrend(np.unwrap(phase)), ".")
-    #     plt.xlabel("Intermediate frequency [MHz]")
-    #     plt.ylabel("Phase [rad]")
-    #     plt.pause(0.1)
-    #     plt.tight_layout()
-    # # Fit the results to extract the resonance frequency
-    # try:
-    #     from qualang_tools.plot.fitting import Fit
-    #
-    #     fit = Fit()
-    #     plt.figure()
-    #     res_spec_fit = fit.reflection_resonator_spectroscopy(frequencies / u.MHz, R, plot=True)
-    #     plt.title(f"Resonator spectroscopy - LO = {resonator_LO / u.GHz} GHz")
-    #     plt.xlabel("Intermediate frequency [MHz]")
-    #     plt.ylabel(r"R=$\sqrt{I^2 + Q^2}$ [V]")
-    #     print(f"Resonator resonance frequency to update in the config: resonator_IF = {res_spec_fit['f'][0]:.6f} MHz")
-    # except (Exception,):
-    #     pass
+    results = fetching_tool(job, data_list=["I", "Q", "iteration"], mode="live")
+    # Live plotting
+    fig = plt.figure()
+    interrupt_on_close(fig, job)  # Interrupts the job when closing the figure
+    while results.is_processing():
+        # Fetch results
+        I, Q, iteration = results.fetch_all()
+        # Convert results into Volts
+        S = u.demod2volts(I + 1j * Q, 1000)
+        R = np.abs(S)  # Amplitude
+        phase = np.angle(S)  # Phase
+        # Progress bar
+        progress_counter(iteration, n_avg, start_time=results.get_start_time())
+        # Plot results
+        plt.suptitle(f"Resonator spectroscopy - LO = {resonator_LO / u.GHz} GHz")
+        ax1 = plt.subplot(211)
+        plt.cla()
+        plt.plot(frequencies / u.MHz, R, ".")
+        plt.ylabel(r"$R=\sqrt{I^2 + Q^2}$ [V]")
+        plt.subplot(212, sharex=ax1)
+        plt.cla()
+        plt.plot(frequencies / u.MHz, signal.detrend(np.unwrap(phase)), ".")
+        plt.xlabel("Intermediate frequency [MHz]")
+        plt.ylabel("Phase [rad]")
+        plt.pause(0.1)
+        plt.tight_layout()
+    # Fit the results to extract the resonance frequency
+    try:
+        from qualang_tools.plot.fitting import Fit
+
+        fit = Fit()
+        plt.figure()
+        res_spec_fit = fit.reflection_resonator_spectroscopy(frequencies / u.MHz, R, plot=True)
+        plt.title(f"Resonator spectroscopy - LO = {resonator_LO / u.GHz} GHz")
+        plt.xlabel("Intermediate frequency [MHz]")
+        plt.ylabel(r"R=$\sqrt{I^2 + Q^2}$ [V]")
+        print(f"Resonator resonance frequency to update in the config: resonator_IF = {res_spec_fit['f'][0]:.6f} MHz")
+    except (Exception,):
+        pass
+
+plt.show()

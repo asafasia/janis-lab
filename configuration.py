@@ -18,7 +18,7 @@ def IQ_imbalance(g, phi):
 
 
 u = unit(coerce_to_integer=True)
-depletion_time = 2 * u.us
+depletion_time = 0.5 * u.us
 
 sa_address = "TCPIP0::192.168.43.100::inst0::INSTR"
 qm_host = "192.168.43.137"
