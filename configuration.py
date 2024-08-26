@@ -185,7 +185,7 @@ config = {
             {
                 "intermediate_frequency": qubit_IF,
                 "lo_frequency": qubit_LO,
-                "correction": qubit_correction_matrix
+                "correction": IQ_imbalance(0.005, 0.048)
             }
 
         ],

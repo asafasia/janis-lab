@@ -9,17 +9,20 @@ from qm.qua import *
 import numpy as np
 
 lo_freq = 6e3
-I_port = 1
-Q_port = 2
-element = "resonator"
+I_port = 3
+Q_port = 4
+element = "qubit"
+averaging = False
 
-print(config["controllers"]["con1"])
-I0 = config["controllers"]["con1"]["analog_outputs"]["1"]["offset"]
-Q0 = config["controllers"]["con1"]["analog_outputs"]["2"]["offset"]
+
+I0 = args['qubit1'][element]["IQ_bias"]["I"]
+Q0 = args['qubit1'][element]["IQ_bias"]["Q"]
+f_LO = args['qubit1'][element][f"{element}_LO"]
+f_IF = args['qubit1'][element][f"{element}_IF"]
 
 
 def open_qm():
-    qm = QuantumMachinesManager(qm_host, 9510)
+    qm = QuantumMachinesManager(host=qm_host, port=qm_port)
     config = {
         "version": 1,
         "controllers": {
@@ -107,13 +110,12 @@ def getWithIQ(IQ, qm, sa, averaging=False, verbose=False):
     return t
 
 
-averaging = False
 
 num_points = 21  # angular points to test response
 amp = 0.1  # I,Q amplitude
 
 sa = N9010A_SA(sa_address, False)
-sa.setup_spectrum_analyzer(center_freq=6e3, span=0.5e6, BW=0.02e6, points=125)
+sa.setup_spectrum_analyzer(center_freq=f_LO / 1e6, span=0.5e6, BW=0.02e6, points=125)
 sa.set_marker_max()
 if averaging:
     sa.setup_averaging(True, 4)
@@ -203,8 +205,8 @@ correction_matrix = np.array(rot @ scaling_m)
 
 correction_matrix = np.linalg.inv(correction_matrix).flatten().tolist()
 
-correction_matrix = IQ_imbalance(0, theta0)
-
-modify_json(qubit, element, "resonator_correction_matrix", correction_matrix)
+# correction_matrix = IQ_imbalance(0, theta0)
+#
+# modify_json(qubit, element, "resonator_correction_matrix", correction_matrix)
 
 plt.show()

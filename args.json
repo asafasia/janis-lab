@@ -6,22 +6,22 @@
                 "Q": 4
             },
             "IQ_bias": {
-                "I": -0.10264185855263158,
-                "Q": -0.05288856907894738
+                "I": -0.06378495065789475,
+                "Q": -0.10757606907894739
             },
             "qubit_correction_matrix": [
-                0.1,
-                0.1,
-                0.1,
-                0.2
+                1.0010660959684614,
+                0.04831948818439604,
+                0.04808810994887618,
+                1.0058827732545965
             ],
             "qubit_LO": 4070000000.0,
             "qubit_IF": 150000000.0,
             "qubit_freq": 5100000000.0,
             "pi_pulse_length": 40,
             "pi_pulse_amplitude": 0.1,
-            "saturation_length": 1000,
-            "saturation_amplitude": 0.051,
+            "saturation_length": 10000,
+            "saturation_amplitude": 0.05,
             "qubit_anharmonicity": -300000000.0,
             "qubit_T1": 0.0001,
             "qubit_T2": 0.00012

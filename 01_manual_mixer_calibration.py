@@ -26,7 +26,7 @@ from instruments_py27.spectrum_analyzer import N9010A_SA
 ###################
 # The QUA program #
 ###################
-element = "resonator"
+element = "qubit"
 
 if element != "resonator" and element != "qubit":
     raise ValueError("Element must be either 'resonator' or 'qubit'")
@@ -93,10 +93,10 @@ sa.setup_averaging(False, 1)
 # Automatic image cancellation
 centers = [0, 0]
 
-span = [0.1, 0.1]
+span = [0.3, 0.2]
 num = 11
 fig2 = plt.figure()
-for n in range(3):
+for n in range(5):
     gain = np.linspace(centers[0] - span[0], centers[0] + span[0], num)
     phase = np.linspace(centers[1] - span[1], centers[1] + span[1], num)
     image = np.zeros((len(phase), len(gain)))
@@ -111,25 +111,35 @@ for n in range(3):
             )
             sleep(0.1)
             # Write functions to extract the image from the spectrum analyzer
+            print(f"imag power = {sa.get_marker()}")
             image[g][p] = sa.get_marker()
     minimum = np.argwhere(image == np.min(image))[0]
     centers = [gain[minimum[0]], phase[minimum[1]]]
     span = (np.array(span) / 5).tolist()
     # plt.subplot(132)
-    # plt.pcolor(gain, phase, image.transpose())
+    plt.pcolor(gain, phase, image.transpose())
     plt.xlabel("Gain")
     plt.ylabel("Phase imbalance [rad]")
     plt.title(f"Minimum at (gain={centers[0]:.3f}, phase={centers[1]:.3f}) = {image[minimum[0]][minimum[1]]:.1f} dBm")
+    plt.colorbar()
     plt.show()
-plt.colorbar()
 plt.suptitle(f"Image cancellation for {element}")
 
 q = centers[0]
 p = centers[1]
 
-correction_matrix = IQ_imbalance(q, p).tolist()
-
-modify_json(qubit, element, "resonator_correction_matrix", correction_matrix)
-
+correction_matrix = IQ_imbalance(q, p)
 print(f"For {element}, gain is {centers[0]} and phase is {centers[1]}")
 plt.show()
+
+
+response = input("Do you want to update correction matrix? (yes/no): ").strip().lower()
+
+if response == 'y':
+    print("Okay, let's update the IQ bias.")
+    modify_json(qubit, element, f"{element}_correction_matrix", correction_matrix)
+elif response == 'n':
+    print("Okay, maybe next time.")
+else:
+    print("Invalid response. Please enter 'y' or 'n'.")
+
