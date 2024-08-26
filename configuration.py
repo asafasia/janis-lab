@@ -84,8 +84,8 @@ config = {
             },
             "digital_outputs": {},
             "analog_inputs": {
-                1: {"offset": 0.0, "gain_db": 0},  # I from down-conversion
-                2: {"offset": 0.0, "gain_db": 0},  # Q from down-conversion
+                1: {"offset": 0, "gain_db": 0},  # I from down-conversion
+                2: {"offset": 0, "gain_db": 0},  # Q from down-conversion
             },
         }
     },
@@ -183,7 +183,7 @@ config = {
             {
                 "intermediate_frequency": resonator_IF,
                 "lo_frequency": resonator_LO,
-                "correction": IQ_imbalance(0.038, -0.066)
+                "correction": IQ_imbalance(0.014, -0.032)
 
             }
 

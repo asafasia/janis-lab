@@ -81,7 +81,7 @@ else:
     plt.plot(adc1, label="I")
     plt.plot(adc2, label="Q")
     plt.xlabel("Time [ns]")
-    plt.xlim([20,60])
+    # plt.xlim([20,60])
 
     plt.ylabel("Signal amplitude [V]")
     plt.legend()

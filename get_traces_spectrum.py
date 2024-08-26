@@ -56,7 +56,7 @@ if __name__ == "__main__":
 
     pending_job = qm.queue.add_to_start(prog)
 
-    average = True
+    average = False
 
     center_freq = args['qubit1']['resonator']["resonator_LO"] / 1e6,
     span = 500e6,

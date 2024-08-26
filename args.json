@@ -31,8 +31,8 @@
                 "Q": 2
             },
             "IQ_bias": {
-                "I": -0.026387746710526322,
-                "Q": -0.01880139802631579
+                "I": -0.026356907894736846,
+                "Q": 0.006373355263157893
             },
             "resonator_correction_matrix": [
                 0.9702110768983646,
@@ -40,11 +40,11 @@
                 -0.06081467354520861,
                 1.0443468070268112
             ],
-            "resonator_LO": 6000000000.0,
-            "resonator_IF": 52e6,
+            "resonator_LO": 6950000000.0,
+            "resonator_IF": 50000000.0,
             "resonator_freq": 0,
-            "readout_pulse_length": 500,
-            "readout_pulse_amplitude": 0.005,
+            "readout_pulse_length": 1000,
+            "readout_pulse_amplitude": 0.04,
             "time_of_flight": 200
         },
         "else": {

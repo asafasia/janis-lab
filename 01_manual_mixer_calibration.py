@@ -64,7 +64,9 @@ job = qm.execute(cw_output)
 # Automatic LO leakage correction
 
 sa = N9010A_SA(sa_address, False)
-sa.setup_spectrum_analyzer(center_freq=6e9 / 1e6 + 123, span=0.5e6, BW=0.1e6, points=15)
+
+
+sa.setup_spectrum_analyzer(center_freq=6.95e9 / 1e6 + 50, span=0.5e6, BW=0.1e6, points=15)
 sa.set_marker_max()
 sa.setup_averaging(False, 1)
 
