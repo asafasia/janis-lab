@@ -42,6 +42,8 @@ thermalization_time = 100
 drag_coef = 0
 anharmonicity = -200 * u.MHz
 AC_stark_detuning = 0 * u.MHz
+saturation_len = qubit_args['saturation_length']
+saturation_amp = qubit_args['saturation_amplitude']
 x180_len = 40
 x180_sigma = x180_len / 5
 x180_amp = 0.35
@@ -61,7 +63,7 @@ readout_pulse_length = resonator_args['readout_pulse_length']
 readout_pulse_amplitude = resonator_args['readout_pulse_amplitude']
 resonator_correction_matrix = resonator_args['resonator_correction_matrix']
 time_of_flight = resonator_args['time_of_flight']
-
+smearing = resonator_args['smearing']
 #############################################
 #                   else                    #
 #############################################
@@ -100,6 +102,7 @@ config = {
             "intermediate_frequency": qubit_IF,
             "operations": {
                 "cw": "const_pulse",
+                "saturation": "saturation_pulse",
                 "x180": "x180_pulse",
 
             },
@@ -122,7 +125,7 @@ config = {
                 "out2": (con, 2),
             },
             "time_of_flight": time_of_flight,
-            "smearing": 0,
+            "smearing": smearing,
 
         },
     },
@@ -136,6 +139,12 @@ config = {
                 "Q": "zero_wf",
             },
         },
+        "saturation_pulse": {
+            "operation": "control",
+            "length": saturation_len,
+            "waveforms": {"I": "saturation_drive_wf", "Q": "zero_wf"},
+        },
+
         "x180_pulse": {
             "operation": "control",
             "length": x180_len,
@@ -164,6 +173,7 @@ config = {
 
     "waveforms": {
         "const_wf": {"type": "constant", "sample": const_amp},
+        "saturation_drive_wf": {"type": "constant", "sample": saturation_amp},
         "zero_wf": {"type": "constant", "sample": 0.0},
         "x180_I_wf": {"type": "arbitrary", "samples": x180_I_wf.tolist()},
         "x180_Q_wf": {"type": "arbitrary", "samples": x180_Q_wf.tolist()},

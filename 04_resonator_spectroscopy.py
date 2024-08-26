@@ -28,7 +28,8 @@ from scipy import signal
 ###################
 # The QUA program #
 ###################
-n_avg = 1000  # The number of averages
+f_lo = resonator_args["resonator_LO"]
+n_avg = 100  # The number of averages
 # The frequency sweep parameters
 f_min = 60 * u.MHz
 f_max = 85 * u.MHz
@@ -83,9 +84,9 @@ with program() as resonator_spec:
 
             # Wait for the resonator to deplete
             wait(depletion_time * u.ns, "resonator")
-        # Save the 'I' & 'Q' quadratures to their respective streams
-        #     save(I, I_st)
-        #     save(Q, Q_st)
+            # Save the 'I' & 'Q' quadratures to their respective streams
+            #     save(I, I_st)
+            #     save(Q, Q_st)
 
             save(II, stream_II)
             save(IQ, stream_IQ)
@@ -163,29 +164,17 @@ else:
     # Progress bar
     # progress_counter(iteration, n_avg, start_time=results.get_start_time())
     # Plot results
-    plt.title("I and Q as function of freq")
-    plt.plot(frequencies / u.MHz, I_m, ".", label="I")
-    plt.plot(frequencies / u.MHz, Q_m, ".", label="Q")
-    plt.xlabel("Frequency [MHz]")
-    plt.ylabel("Amplitude [V]")
-    plt.legend()
-    plt.show()
-    plt.title("I and Q quadratures")
-    plt.plot(I_m, Q_m, '-')
-    plt.xlabel("I [V]")
-    plt.ylabel("Q [V]")
-    plt.show()
     plt.suptitle(f"Resonator spectroscopy - LO = {resonator_LO / u.GHz} GHz")
     ax1 = plt.subplot(211)
     plt.cla()
-    plt.plot(frequencies / u.MHz, R, ".")
-    plt.ylim([0,max(R)*1.2])
+    plt.plot((f_lo - frequencies) / u.MHz, R)
+    plt.ylim([0, max(R) * 1.2])
 
     plt.ylabel(r"$R=\sqrt{I^2 + Q^2}$ [V]")
     plt.subplot(212, sharex=ax1)
     plt.cla()
-    plt.plot(frequencies / u.MHz, signal.detrend(np.unwrap(phase)), )
-    plt.ylim([-np.pi/2, np.pi/2])
+    plt.plot((f_lo - frequencies) / u.MHz, signal.detrend(np.unwrap(phase)), )
+    plt.ylim([-np.pi / 2, np.pi / 2])
     plt.xlabel("Intermediate frequency [MHz]")
     plt.ylabel("Phase [rad]")
     plt.pause(0.1)

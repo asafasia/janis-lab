@@ -28,6 +28,9 @@ from instruments_py27.spectrum_analyzer import N9010A_SA
 ###################
 element = "resonator"
 
+if element != "resonator" and element != "qubit":
+    raise ValueError("Element must be either 'resonator' or 'qubit'")
+
 with program() as cw_output:
     with infinite_loop_():
         # It is best to calibrate LO leakage first and without any power played (cf. note below)
@@ -41,32 +44,12 @@ qm = qmm.open_qm(config)
 
 job = qm.execute(cw_output)
 
-# When done, the halt command can be called and the offsets can be written directly into the config file.
-
-# job.halt()
-
-# These are the 2 commands used to correct for mixer imperfections. The first is used to set the DC of the `I` and `Q`
-# channels to compensate for the LO leakage. The 2nd command is used to correct for the phase and amplitude mismatches
-# between the channels.
-# The output of the IQ Mixer should be connected to a spectrum analyzer and values should be chosen as to minimize the
-# unwanted peaks.
-# If python can read the output of the spectrum analyzer, then this process can be automated and the correct values can
-# be found using an optimization method such as Nelder-Mead:
-# https://docs.scipy.org/doc/scipy/reference/optimize.minimize-neldermead.html
-
-# qm.set_output_dc_offset_by_element('qubit', ('I', 'Q'), (-0.001, 0.003))
-# qm.set_mixer_correction('mixer_qubit', int(qubit_IF), int(qubit_LO), IQ_imbalance(0.015, 0.01))
-
-# Note that the LO leakage (DC Offset) depends on the 'I' & 'Q' powers, it is advised to run this step with no input power.
-# This will ensure that there is no LO leakage while the pulses are not played in the case where the is no switch.
-# This can be achieved by changing the line above to `play("cw" * amp(0), "qubit")`
-
-# Automatic LO leakage correction
-
 sa = N9010A_SA(sa_address, False)
 
+f_LO = args['qubit1'][element][f'{element}_LO']
+f_IF = args['qubit1'][element][f'{element}_IF']
 
-sa.setup_spectrum_analyzer(center_freq=6.95e9 / 1e6 + 50, span=0.5e6, BW=0.1e6, points=15)
+sa.setup_spectrum_analyzer(center_freq=f_LO / 1e6 + f_IF / 1e6, span=0.5e6, BW=0.1e6, points=15)
 sa.set_marker_max()
 sa.setup_averaging(False, 1)
 
@@ -131,9 +114,9 @@ for n in range(3):
             image[g][p] = sa.get_marker()
     minimum = np.argwhere(image == np.min(image))[0]
     centers = [gain[minimum[0]], phase[minimum[1]]]
-    span = (np.array(span) / 10).tolist()
+    span = (np.array(span) / 5).tolist()
     # plt.subplot(132)
-    plt.pcolor(gain, phase, image.transpose())
+    # plt.pcolor(gain, phase, image.transpose())
     plt.xlabel("Gain")
     plt.ylabel("Phase imbalance [rad]")
     plt.title(f"Minimum at (gain={centers[0]:.3f}, phase={centers[1]:.3f}) = {image[minimum[0]][minimum[1]]:.1f} dBm")
@@ -144,10 +127,9 @@ plt.suptitle(f"Image cancellation for {element}")
 q = centers[0]
 p = centers[1]
 
-correction_matrix = IQ_imbalance(q, p)
+correction_matrix = IQ_imbalance(q, p).tolist()
 
 modify_json(qubit, element, "resonator_correction_matrix", correction_matrix)
 
 print(f"For {element}, gain is {centers[0]} and phase is {centers[1]}")
 plt.show()
-#

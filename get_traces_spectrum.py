@@ -45,23 +45,23 @@ def plot_traces(center_freq, span, BW, points, average=False):
 
 
 if __name__ == "__main__":
-    qop_ip = None
-    qmm = QuantumMachinesManager("192.168.43.137", 9510)
-
+    qmm = QuantumMachinesManager(host=qm_host, port=qm_port)
     qm = qmm.open_qm(config)
+
+    element = "qubit"
 
     with program() as prog:
         with infinite_loop_():
             play("readout", "resonator")
+            play("saturation", "qubit")
 
     pending_job = qm.queue.add_to_start(prog)
 
-    average = False
-
-    center_freq = args['qubit1']['resonator']["resonator_LO"] / 1e6,
+    center_freq = args['qubit1'][element][f"{element}_LO"] / 1e6,
     span = 500e6,
     BW = 0.1e6,
     points = 5000
+    average = False
 
     plot_traces(center_freq, span, BW, points, average)
     plt.show()

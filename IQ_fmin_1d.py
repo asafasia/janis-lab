@@ -13,9 +13,9 @@ I_FIG_NUM = 1
 Q_FIG_NUM = 2
 F = plt.figure(I_FIG_NUM)
 plotFigs = True
-element = 'resonator'
+element = 'qubit'
 
-LOFreq = args[qubit][element]["resonator_LO"]
+LOFreq = args[qubit][element][f"{element}_LO"]
 
 I0 = 0
 Q0 = 0
@@ -138,19 +138,12 @@ with program() as prog:
 if __name__ == "__main__":
 
     qubit = 'qubit1'
-    element = 'resonator'
     average = False
     I0 = 0
     Q0 = 0
 
-    if element == 'qubit':
-        I_port = 3
-        Q_port = 4
-    elif element == 'resonator':
-        I_port = 1
-        Q_port = 2
-    else:
-        raise ValueError(f"Element {element} not recognized")
+    I_port = args[qubit][element]["IQ_input"]["I"]
+    Q_port = args[qubit][element]["IQ_input"]["Q"]
 
     sa = N9010A_SA(sa_address, False)
     sa.setup_spectrum_analyzer(center_freq=LOFreq / 1e6, span=0.5e6, BW=0.1e6, points=15)
@@ -160,8 +153,8 @@ if __name__ == "__main__":
     job = qm.execute(prog)
     getWithIQ([0.0, 0.0], qm, sa)  # send a sequence in order to have a trigger before setting SA marker to max
 
-    currMin = 10.0  # minimal transmission, start with a high value
-    currRange = 0.05  # 0.98#0.80 # 2**10 #range to scan around the minima
+    currMin = 100.0  # minimal transmission, start with a high value
+    currRange = 0.2  # 0.98#0.80 # 2**10 #range to scan around the minima
     minimum = -80  # Stop at this value
     numPoints = 20  # number of points
     I0 = 0.0
@@ -194,7 +187,15 @@ if __name__ == "__main__":
     qm.set_output_dc_offset_by_element("RR1", "single", I0)
     qm.set_output_dc_offset_by_element("RR2", "single", Q0)
 
-    modify_json(qubit, element, "IQ_bias", {"I": I0, "Q": Q0})
-
     plot_traces(LOFreq / 1e6, 500e6, 0.1e6, 5005, True)
     plt.show()
+
+    response = input("Do you want to updata IQ bias? (yes/no): ").strip().lower()
+
+    if response == 'y':
+        print("Okay, let's update the IQ bias.")
+        modify_json(qubit, element, "IQ_bias", {"I": I0, "Q": Q0})
+    elif response == 'n':
+        print("Okay, maybe next time.")
+    else:
+        print("Invalid response. Please enter 'y' or 'n'.")

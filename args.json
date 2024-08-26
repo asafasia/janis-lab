@@ -6,8 +6,8 @@
                 "Q": 4
             },
             "IQ_bias": {
-                "I": 0.1,
-                "Q": 0.2
+                "I": -0.10264185855263158,
+                "Q": -0.05288856907894738
             },
             "qubit_correction_matrix": [
                 0.1,
@@ -15,12 +15,13 @@
                 0.1,
                 0.2
             ],
-            "qubit_LO": 5000000000.0,
+            "qubit_LO": 4070000000.0,
             "qubit_IF": 150000000.0,
             "qubit_freq": 5100000000.0,
             "pi_pulse_length": 40,
-            "spectroscopy_pulse_length": 1000,
-            "spectroscopy_pulse_amplitude": 0.1,
+            "pi_pulse_amplitude": 0.1,
+            "saturation_length": 1000,
+            "saturation_amplitude": 0.051,
             "qubit_anharmonicity": -300000000.0,
             "qubit_T1": 0.0001,
             "qubit_T2": 0.00012
@@ -44,8 +45,9 @@
             "resonator_IF": 50000000.0,
             "resonator_freq": 0,
             "readout_pulse_length": 1000,
-            "readout_pulse_amplitude": 0.04,
-            "time_of_flight": 200
+            "readout_pulse_amplitude": 0.1,
+            "time_of_flight": 200,
+            "smearing": 0
         },
         "else": {
             "const_length": 1000,
