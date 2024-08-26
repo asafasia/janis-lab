@@ -18,13 +18,13 @@ import numpy as np
 ###################
 # The QUA program #
 ###################
-n_avg = 1  # The number of averages
+n_avg = 1000  # The number of averages
 
 with program() as raw_trace_prog:
     n = declare(int)  # QUA variable for the averaging loop
     adc_st = declare_stream(adc_trace=True)  # The stream to store the raw ADC trace
-    I = declare(fixed)  # QUA variable for the measured 'I' quadrature
-    Q = declare(fixed)  # QUA variable for the measured 'Q' quadrature
+    # I = declare(fixed)  # QUA variable for the measured 'I' quadrature
+    # Q = declare(fixed)  # QUA variable for the measured 'Q' quadrature
 
     with for_(n, 0, n < n_avg, n + 1):  # QUA for_ loop for averaging
         # Make sure that the readout pulse is sent with the same phase so that the acquired signal does not average out
@@ -78,20 +78,25 @@ else:
     plt.figure()
     plt.subplot(121)
     plt.title("Single run")
-    plt.plot(adc1, label="Input 1")
-    plt.plot(adc2, label="Input 2")
+    plt.plot(adc1, label="I")
+    plt.plot(adc2, label="Q")
     plt.xlabel("Time [ns]")
+    plt.xlim([20,60])
+
     plt.ylabel("Signal amplitude [V]")
     plt.legend()
     # plt.xlim([200, 220])
     plt.subplot(122)
     plt.title("Averaged run")
-    plt.plot(adc1, adc2, label="Input 1")
+    plt.plot(adc1, adc2, label="IQ")
+    plt.plot(adc2, adc1, label="QI")
+
     # plt.plot(adc2, label="Input 2")
-    plt.xlabel("Time [ns]")
+    plt.xlabel("I ")
+    plt.ylabel("Q ")
     plt.legend()
     plt.tight_layout()
-
+    plt.axis("equal")
     print(f"\nInput1 mean: {np.mean(adc1)} V\n" f"Input2 mean: {np.mean(adc2)} V")
 
 plt.show()

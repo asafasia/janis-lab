@@ -25,15 +25,14 @@ from qualang_tools.loops import from_array
 import matplotlib.pyplot as plt
 from scipy import signal
 
-
 ###################
 # The QUA program #
 ###################
-n_avg = 100  # The number of averages
+n_avg = 1000  # The number of averages
 # The frequency sweep parameters
 f_min = 30 * u.MHz
-f_max = 70 * u.MHz
-df = 50 * u.kHz
+f_max = 35 * u.MHz
+df = 10 * u.kHz
 frequencies = np.arange(f_min, f_max + 0.1, df)  # The frequency vector (+ 0.1 to add f_max to frequencies)
 
 with program() as resonator_spec:
@@ -47,6 +46,8 @@ with program() as resonator_spec:
 
     with for_(n, 0, n < n_avg, n + 1):  # QUA for_ loop for averaging
         with for_(*from_array(f, frequencies)):  # QUA for_ loop for sweeping the frequency
+            reset_phase('resonator')  # Reset the phase of the resonator element
+
             # Update the frequency of the digital oscillator linked to the resonator element
             update_frequency("resonator", f)
             # Measure the resonator (send a readout pulse and demodulate the signals to get the 'I' & 'Q' quadratures)
@@ -54,8 +55,8 @@ with program() as resonator_spec:
                 "readout",
                 "resonator",
                 None,
-                dual_demod.full('cos', 'out1', 'sin', 'out2', I),
-                dual_demod.full('minus_sin', 'out1', 'cos', 'out2', Q)
+                demod.full('cos', I, 'out1'),
+                demod.full('sin', Q, 'out2')
             )
             # Wait for the resonator to deplete
             wait(depletion_time * u.ns, "resonator")
@@ -80,7 +81,8 @@ qmm = QuantumMachinesManager(host=qm_host, port=qm_port)
 # Simulate or execute #
 #######################
 simulate = False
-
+I0 = -0.026387746710526322
+Q0 = -0.01880139802631579
 if simulate:
     # Simulates the QUA program for the specified duration
     simulation_config = SimulationConfig(duration=10_000)  # In clock cycles = 4ns
@@ -99,40 +101,51 @@ else:
     # Live plotting
     fig = plt.figure()
     interrupt_on_close(fig, job)  # Interrupts the job when closing the figure
-    while results.is_processing():
+    # while results.is_processing():
         # Fetch results
-        I, Q, iteration = results.fetch_all()
-        # Convert results into Volts
-        S = u.demod2volts(I + 1j * Q, 1000)
-        R = np.abs(S)  # Amplitude
-        phase = np.angle(S)  # Phase
-        # Progress bar
-        progress_counter(iteration, n_avg, start_time=results.get_start_time())
-        # Plot results
-        plt.suptitle(f"Resonator spectroscopy - LO = {resonator_LO / u.GHz} GHz")
-        ax1 = plt.subplot(211)
-        plt.cla()
-        plt.plot(frequencies / u.MHz, R, ".")
-        plt.ylabel(r"$R=\sqrt{I^2 + Q^2}$ [V]")
-        plt.subplot(212, sharex=ax1)
-        plt.cla()
-        plt.plot(frequencies / u.MHz, signal.detrend(np.unwrap(phase)), ".")
-        plt.xlabel("Intermediate frequency [MHz]")
-        plt.ylabel("Phase [rad]")
-        plt.pause(0.1)
-        plt.tight_layout()
+    I, Q, iteration = results.fetch_all()
+    # Convert results into Volts
+    S = u.demod2volts((I) + 1j * (Q), 1000)
+    R = np.abs(S)  # Amplitude
+    phase = np.angle(S)  # Phase
+    # Progress bar
+    progress_counter(iteration, n_avg, start_time=results.get_start_time())
+    # Plot results
+    plt.title("I and Q as function of freq")
+    plt.plot(frequencies / u.MHz, I, ".", label="I")
+    plt.plot(frequencies / u.MHz, Q, ".", label="Q")
+    plt.xlabel("Frequency [MHz]")
+    plt.ylabel("Amplitude [V]")
+    plt.legend()
+    plt.show()
+    plt.title("I and Q quadratures")
+    plt.plot(I, Q,'.')
+    plt.xlabel("I [V]")
+    plt.ylabel("Q [V]")
+    plt.show()
+    plt.suptitle(f"Resonator spectroscopy - LO = {resonator_LO / u.GHz} GHz")
+    ax1 = plt.subplot(211)
+    plt.cla()
+    plt.plot(frequencies / u.MHz, R, ".")
+    plt.ylabel(r"$R=\sqrt{I^2 + Q^2}$ [V]")
+    plt.subplot(212, sharex=ax1)
+    plt.cla()
+    plt.plot(frequencies / u.MHz, signal.detrend(np.unwrap(phase)), ".")
+    plt.xlabel("Intermediate frequency [MHz]")
+    plt.ylabel("Phase [rad]")
+    plt.pause(0.1)
+    plt.tight_layout()
     # Fit the results to extract the resonance frequency
-    try:
-        from qualang_tools.plot.fitting import Fit
+    # try:
+    #     from qualang_tools.plot.fitting import Fit
+    #
+    #     fit = Fit()
+    #     plt.figure()
+    #     res_spec_fit = fit.reflection_resonator_spectroscopy(frequencies / u.MHz, R, plot=True)
+    #     plt.title(f"Resonator spectroscopy - LO = {resonator_LO / u.GHz} GHz")
+    #     plt.xlabel("Intermediate frequency [MHz]")
+    #     plt.ylabel(r"R=$\sqrt{I^2 + Q^2}$ [V]")
+    #     print(f"Resonator resonance frequency to update in the config: resonator_IF = {res_spec_fit['f'][0]:.6f} MHz")
+    # except (Exception,):
+    #     pass
 
-        fit = Fit()
-        plt.figure()
-        res_spec_fit = fit.reflection_resonator_spectroscopy(frequencies / u.MHz, R, plot=True)
-        plt.title(f"Resonator spectroscopy - LO = {resonator_LO / u.GHz} GHz")
-        plt.xlabel("Intermediate frequency [MHz]")
-        plt.ylabel(r"R=$\sqrt{I^2 + Q^2}$ [V]")
-        print(f"Resonator resonance frequency to update in the config: resonator_IF = {res_spec_fit['f'][0]:.6f} MHz")
-    except (Exception,):
-        pass
-
-plt.show()

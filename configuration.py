@@ -1,5 +1,7 @@
 import json
 from qualang_tools.units import unit
+from qualang_tools.config.waveform_tools import drag_gaussian_pulse_waveforms
+
 import numpy as np
 
 
@@ -18,7 +20,7 @@ def IQ_imbalance(g, phi):
 
 
 u = unit(coerce_to_integer=True)
-depletion_time = 0.5 * u.us
+depletion_time = 5 * u.us
 
 sa_address = "TCPIP0::192.168.43.100::inst0::INSTR"
 qm_host = "192.168.43.137"
@@ -33,10 +35,21 @@ qubit = 'qubit1'
 #                  Qubits                   #
 #############################################
 qubit_args = args[qubit]["qubit"]
-
 qubit_LO = qubit_args['qubit_LO']
 qubit_IF = qubit_args['qubit_IF']
 qubit_correction_matrix = qubit_args['qubit_correction_matrix']
+thermalization_time = 100
+drag_coef = 0
+anharmonicity = -200 * u.MHz
+AC_stark_detuning = 0 * u.MHz
+x180_len = 40
+x180_sigma = x180_len / 5
+x180_amp = 0.35
+x180_wf, x180_der_wf = np.array(
+    drag_gaussian_pulse_waveforms(x180_amp, x180_len, x180_sigma, drag_coef, anharmonicity, AC_stark_detuning)
+)
+x180_I_wf = x180_wf
+x180_Q_wf = x180_der_wf
 
 #############################################
 #                Resonators                 #
@@ -87,6 +100,8 @@ config = {
             "intermediate_frequency": qubit_IF,
             "operations": {
                 "cw": "const_pulse",
+                "x180": "x180_pulse",
+
             },
         },
 
@@ -121,6 +136,14 @@ config = {
                 "Q": "zero_wf",
             },
         },
+        "x180_pulse": {
+            "operation": "control",
+            "length": x180_len,
+            "waveforms": {
+                "I": "x180_I_wf",
+                "Q": "x180_Q_wf",
+            },
+        },
 
         "readout_pulse": {
             "operation": "measurement",
@@ -131,7 +154,7 @@ config = {
             },
             "integration_weights": {
                 "cos": "cosine_weights",
-                "sin": "cosine_weights",
+                "sin": "sine_weights",
                 "minus_sin": "minus_sine_weights"
             },
             "digital_marker": "ON"
@@ -142,6 +165,8 @@ config = {
     "waveforms": {
         "const_wf": {"type": "constant", "sample": const_amp},
         "zero_wf": {"type": "constant", "sample": 0.0},
+        "x180_I_wf": {"type": "arbitrary", "samples": x180_I_wf.tolist()},
+        "x180_Q_wf": {"type": "arbitrary", "samples": x180_Q_wf.tolist()},
         "readout_wf": {"type": "constant", "sample": readout_pulse_amplitude}
     },
 
@@ -158,7 +183,7 @@ config = {
             {
                 "intermediate_frequency": resonator_IF,
                 "lo_frequency": resonator_LO,
-                "correction": resonator_correction_matrix
+                "correction": IQ_imbalance(0.038, -0.066)
 
             }
 

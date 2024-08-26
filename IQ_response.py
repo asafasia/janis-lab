@@ -109,7 +109,7 @@ def getWithIQ(IQ, qm, sa, averaging=False, verbose=False):
 
 averaging = False
 
-num_points = 51  # angular points to test response
+num_points = 21  # angular points to test response
 amp = 0.1  # I,Q amplitude
 
 sa = N9010A_SA(sa_address, False)
@@ -199,59 +199,11 @@ plot_ellipse(plt, theta, volt, "Corrected", [5, 6])
 
 print(np.array(rot @ scaling_m).flatten())
 plt.show()
+correction_matrix = np.array(rot @ scaling_m)
 
-# %% test model
+correction_matrix = np.linalg.inv(correction_matrix).flatten().tolist()
 
-
-theta0 = theta[volt.argmax()]
-c = np.cos(theta0)
-s = np.sin(theta0)
-rot2 = np.array([[c, -s], [s, c]])  # rotation matrix
-
-print("Getting response with angular correction...")
-getWithIQ([I0, Q0], qm, sa)  # to prevent problems
-for idx in range(len(theta)):
-    print("idx = %d" % idx + " of %d" % len(theta))
-    iq = rot @ scaling_m @ rot2 @ [I[idx], Q[idx]]
-    power[idx] = getWithIQ(iq + [I0, Q0], qm, sa, averaging=averaging)
-
-volt = np.sqrt(10 ** (power / 10.0) * 50)
-
-# plot
-plot_ellipse(plt, theta, volt, "Angular correction", [7, 8])
-
-# find long radius - volt at 0,pi (actually should be equal if symmetric around origin)
-idx_pi = np.abs(theta - np.pi).argmin()
-r_long = volt[idx_pi] + volt[0]
-
-# find short radius - volt at +/- pi/2 (actually should be equal if symmetric around origin)
-idx_pi_2 = np.abs(theta - np.pi / 2).argmin()
-idx_3_pi_2 = np.abs(theta - 3 * np.pi / 2).argmin()
-r_short = volt[idx_3_pi_2] + volt[idx_pi_2]
-plt.figure(7)
-plt.polar(0, r_long / 2, 'ro')
-plt.polar(np.pi / 2, r_short / 2, 'ro')
-plt.polar(np.pi, r_long / 2, 'ro')
-plt.polar(3 * np.pi / 2, r_short / 2, 'ro')
-plt.show()
-
-# %% calibrate scaling
-
-scaling_m2 = np.array([[1, 0.0], [0.0, r_long / r_short]])
-
-print("Getting response with all corrections...")
-getWithIQ([I0, Q0], qm, sa)  # to prevent problems
-for idx in range(len(theta)):
-    print("idx = %d" % idx + " of %d" % len(theta))
-    iq = rot @ scaling_m @ rot2 @ scaling_m2 @ [I[idx], Q[idx]]
-    power[idx] = getWithIQ(iq + [I0, Q0], qm, sa, averaging=averaging)
-
-volt = np.sqrt(10 ** (power / 10.0) * 50)
-# plot
-plot_ellipse(plt, theta, volt, "Corrected", [9, 10])
-
-correction_matrix = np.array(rot @ scaling_m @ rot2 @ scaling_m2).flatten()
-correction_matrix = list(correction_matrix)
+correction_matrix = IQ_imbalance(0, theta0)
 
 modify_json(qubit, element, "resonator_correction_matrix", correction_matrix)
 

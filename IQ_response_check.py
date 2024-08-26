@@ -6,8 +6,8 @@ from configuration import *
 from time import sleep
 from instruments_py27.spectrum_analyzer import N9010A_SA
 
-I0 = config["controllers"]["con1"]["analog_outputs"][1]["offset"]
-Q0 = config["controllers"]["con1"]["analog_outputs"][2]["offset"]
+I0 = config["controllers"]["con1"]["analog_outputs"]['1']["offset"]
+Q0 = config["controllers"]["con1"]["analog_outputs"]['2']["offset"]
 
 sa = N9010A_SA(sa_address, False)
 sa.setup_spectrum_analyzer(center_freq=6e3, span=5e6, BW=0.2e6, points=35)
@@ -17,10 +17,15 @@ qop_ip = None
 qmm = QuantumMachinesManager("192.168.43.137", 9510)
 
 qm = qmm.open_qm(config)
-
+#
 with program() as prog:
     with infinite_loop_():
         play("readout", "resonator")
+
+# with program() as prog:
+#     I = declare(fixed)
+#     # play("readout", "resonator")
+#     measure("readout", "resonator", None, demod.full("out1", I))
 
 job = qm.execute(prog)
 
@@ -53,4 +58,3 @@ volts = np.sqrt(10 ** (np.array(power_vec) / 10.0) * 50)
 
 plt.polar(thetas, volts)
 plt.show()
-
