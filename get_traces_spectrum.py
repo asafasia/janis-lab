@@ -48,7 +48,7 @@ if __name__ == "__main__":
     qmm = QuantumMachinesManager(host=qm_host, port=qm_port)
     qm = qmm.open_qm(config)
 
-    element = "resonator"
+    element = "qubit"
 
     with program() as prog:
         with infinite_loop_():

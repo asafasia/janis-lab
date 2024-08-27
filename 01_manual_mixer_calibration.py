@@ -47,7 +47,7 @@ job = qm.execute(cw_output)
 sa = N9010A_SA(sa_address, False)
 
 f_LO = args['qubit1'][element][f'{element}_LO']
-f_IF = args['qubit1'][element][f'{element}_IF']
+f_IF = args['qubit1'][element][f'{element}_LO'] - args['qubit1'][element][f'{element}_freq']
 
 sa.setup_spectrum_analyzer(center_freq=f_LO / 1e6 + f_IF / 1e6, span=0.5e6, BW=0.1e6, points=15)
 sa.set_marker_max()

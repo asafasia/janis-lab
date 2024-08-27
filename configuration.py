@@ -36,29 +36,23 @@ qubit = 'qubit1'
 #############################################
 qubit_args = args[qubit]["qubit"]
 qubit_LO = qubit_args['qubit_LO']
-qubit_IF = qubit_args['qubit_IF']
+qubit_freq = qubit_args['qubit_freq']
+qubit_IF = qubit_LO - qubit_freq
 qubit_correction_matrix = qubit_args['qubit_correction_matrix']
-thermalization_time = 100
+thermalization_time = qubit_args['thermalization_time']
 drag_coef = 0
 anharmonicity = -200 * u.MHz
 AC_stark_detuning = 0 * u.MHz
 saturation_len = qubit_args['saturation_length']
 saturation_amp = qubit_args['saturation_amplitude']
-x180_len = 40
-x180_sigma = x180_len / 5
-x180_amp = 0.35
-x180_wf, x180_der_wf = np.array(
-    drag_gaussian_pulse_waveforms(x180_amp, x180_len, x180_sigma, drag_coef, anharmonicity, AC_stark_detuning)
-)
-x180_I_wf = x180_wf
-x180_Q_wf = x180_der_wf
 
 #############################################
 #                Resonators                 #
 #############################################
 resonator_args = args[qubit]["resonator"]
 resonator_LO = resonator_args['resonator_LO']
-resonator_IF = resonator_args['resonator_IF']
+resonator_freq = resonator_args['resonator_freq']
+resonator_IF = resonator_LO - resonator_freq
 readout_pulse_length = resonator_args['readout_pulse_length']
 readout_pulse_amplitude = resonator_args['readout_pulse_amplitude']
 resonator_correction_matrix = resonator_args['resonator_correction_matrix']
@@ -147,7 +141,7 @@ config = {
 
         "x180_pulse": {
             "operation": "control",
-            "length": x180_len,
+            "length": qubit_args['pi_pulse_length'],
             "waveforms": {
                 "I": "x180_I_wf",
                 "Q": "x180_Q_wf",
@@ -175,8 +169,8 @@ config = {
         "const_wf": {"type": "constant", "sample": const_amp},
         "saturation_drive_wf": {"type": "constant", "sample": saturation_amp},
         "zero_wf": {"type": "constant", "sample": 0.0},
-        "x180_I_wf": {"type": "arbitrary", "samples": x180_I_wf.tolist()},
-        "x180_Q_wf": {"type": "arbitrary", "samples": x180_Q_wf.tolist()},
+        "x180_I_wf": {"type": "constant", "sample": qubit_args['pi_pulse_amplitude']},
+        "x180_Q_wf": {"type": "constant", "sample": qubit_args['pi_pulse_amplitude']},
         "readout_wf": {"type": "constant", "sample": readout_pulse_amplitude}
     },
 
@@ -185,7 +179,7 @@ config = {
             {
                 "intermediate_frequency": qubit_IF,
                 "lo_frequency": qubit_LO,
-                "correction": IQ_imbalance(0.005, 0.048)
+                "correction": IQ_imbalance(0.018, 0.063)
             }
 
         ],

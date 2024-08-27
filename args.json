@@ -6,8 +6,8 @@
                 "Q": 4
             },
             "IQ_bias": {
-                "I": -0.06378495065789475,
-                "Q": -0.10757606907894739
+                "I": -0.03600945723684211,
+                "Q": -0.1111533717105263
             },
             "qubit_correction_matrix": [
                 1.0010660959684614,
@@ -15,16 +15,16 @@
                 0.04808810994887618,
                 1.0058827732545965
             ],
-            "qubit_LO": 4070000000.0,
-            "qubit_IF": 150000000.0,
-            "qubit_freq": 5100000000.0,
-            "pi_pulse_length": 40,
-            "pi_pulse_amplitude": 0.1,
-            "saturation_length": 10000,
-            "saturation_amplitude": 0.05,
+            "qubit_LO": 3850000000.0,
+            "qubit_freq": 3762800000.0,
+            "pi_pulse_length": 80,
+            "pi_pulse_amplitude": 0.6,
+            "saturation_length": 30000,
+            "saturation_amplitude": 0.4,
             "qubit_anharmonicity": -300000000.0,
             "qubit_T1": 0.0001,
-            "qubit_T2": 0.00012
+            "qubit_T2": 0.00012,
+            "thermalization_time": 40000
         },
         "resonator": {
             "IQ_input": {
@@ -42,10 +42,9 @@
                 1.0443468070268112
             ],
             "resonator_LO": 6950000000.0,
-            "resonator_IF": 50000000.0,
-            "resonator_freq": 0,
-            "readout_pulse_length": 1000,
-            "readout_pulse_amplitude": 0.1,
+            "resonator_freq": 6874680000.0,
+            "readout_pulse_length": 2000,
+            "readout_pulse_amplitude": 0.051,
             "time_of_flight": 200,
             "smearing": 0
         },

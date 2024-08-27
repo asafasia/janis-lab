@@ -155,7 +155,7 @@ if __name__ == "__main__":
 
     currMin = 100.0  # minimal transmission, start with a high value
     currRange = 0.2  # 0.98#0.80 # 2**10 #range to scan around the minima
-    minimum = -80  # Stop at this value
+    minimum = -90  # Stop at this value
     numPoints = 20  # number of points
     I0 = 0.0
     Q0 = 0.0

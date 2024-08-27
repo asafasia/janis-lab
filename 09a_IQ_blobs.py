@@ -27,7 +27,7 @@ from qualang_tools.analysis.discriminator import two_state_discriminator
 # The QUA program #
 ###################
 
-n_runs = 1000  # Number of runs
+n_runs = 10000  # Number of runs
 
 with program() as IQ_blobs:
     n = declare(int)
@@ -35,6 +35,10 @@ with program() as IQ_blobs:
     Q_g = declare(fixed)
     I_g_st = declare_stream()
     Q_g_st = declare_stream()
+    I_e = declare(fixed)
+    Q_e = declare(fixed)
+    I_e_st = declare_stream()
+    Q_e_st = declare_stream()
 
     with for_(n, 0, n < n_runs, n + 1):
         # Measure the state of the resonator
@@ -51,10 +55,34 @@ with program() as IQ_blobs:
         save(I_g, I_g_st)
         save(Q_g, Q_g_st)
 
+        align()  # global align
+        # Play the x180 gate to put the qubit in the excited state
+        play("saturation", "qubit")
+
+        # wait(1250, "resonator")
+
+        # Align the two elements to measure after playing the qubit pulse.
+        align("qubit", "resonator")
+        # Measure the state of the resonator
+        measure(
+            "readout",
+            "resonator",
+            None,
+            dual_demod.full('cos', 'out1', 'sin', 'out2', I_e),
+            dual_demod.full('minus_sin', 'out1', 'cos', 'out2', Q_e)
+        )
+        # Wait for the qubit to decay to the ground state
+        wait(thermalization_time, "resonator")
+        # Save the 'I' & 'Q' quadratures to their respective streams for the excited state
+        save(I_e, I_e_st)
+        save(Q_e, Q_e_st)
+
     with stream_processing():
         # Save all streamed points for plotting the IQ blobs
         I_g_st.save_all("I_g")
         Q_g_st.save_all("Q_g")
+        I_e_st.save_all("I_e")
+        Q_e_st.save_all("Q_e")
 
 #####################################
 #  Open Communication with the QOP  #
@@ -84,16 +112,19 @@ else:
     # Fetch the 'I' & 'Q' points for the qubit in the ground and excited states
     Ig = res_handles.get("I_g").fetch_all()["value"]
     Qg = res_handles.get("Q_g").fetch_all()["value"]
+    Ie = res_handles.get("I_e").fetch_all()["value"]
+    Qe = res_handles.get("Q_e").fetch_all()["value"]
 
-    plt.plot(Ig, Qg, 'o', label='Ground state')
-    plt.legend()
+    plt.plot(Ig, Qg, '.', label='ground', color='C00', alpha=0.5)
+    plt.plot(Ie, Qe, '.', label='excited', color='C03', alpha=0.2)
     plt.xlabel('I')
     plt.ylabel('Q')
+    plt.legend()
     plt.title('IQ Blobs')
+
     # Plot the IQ blobs, rotate them to get the separation along the 'I' quadrature, estimate a threshold between them
     # for state discrimination and derive the fidelity matrix
-    # angle, threshold, fidelity, gg, ge, eg, ee = two_state_discriminator(Ig, Qg, Ie, Qe, b_print=True, b_plot=True)
-
+    angle, threshold, fidelity, gg, ge, eg, ee = two_state_discriminator(Ig, Qg, Ie, Qe, b_print=True, b_plot=True)
     #########################################
     # The two_state_discriminator gives us the rotation angle which makes it such that all of the information will be in
     # the I axis. This is being done by setting the `rotation_angle` parameter in the configuration.
@@ -135,6 +166,5 @@ else:
     #     assign(cont_condition, ((I > threshold) & (count < 3)))
     #
     #########################################
-    plt.xlim([0, 0.01])
-    plt.ylim([0, 0.01])
+
 plt.show()

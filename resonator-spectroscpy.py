@@ -18,6 +18,8 @@ Before proceeding to the next node:
 from qm.qua import *
 from qm import QuantumMachinesManager
 from qm import SimulationConfig
+
+from change_args import modify_json
 from configuration import *
 from qualang_tools.results import progress_counter, fetching_tool
 from qualang_tools.plot import interrupt_on_close
@@ -28,13 +30,15 @@ from scipy import signal
 ###################
 # The QUA program #
 ###################
-f_LO = resonator_args["resonator_LO"]
-n_avg = 1000  # The number of averages
+center = resonator_freq
+n_avg = 500  # The number of averages
 # The frequency sweep parameters
-f_min = 6870 * u.MHz
-f_max = 6880 * u.MHz
-df = 110 * u.kHz
-frequencies = f_LO - np.arange(f_min, f_max + 0.1, df)  # The frequency vector (+ 0.1 to add f_max to frequencies)
+span = 10 * u.MHz
+f_min = center - span / 2
+f_max = center + span / 2
+df = 50 * u.kHz
+
+frequencies = resonator_LO - np.arange(f_min, f_max + 0.1, df)
 
 with program() as resonator_spec_without_drive:
     n = declare(int)  # QUA variable for the averaging loop
@@ -43,46 +47,25 @@ with program() as resonator_spec_without_drive:
     Q = declare(fixed)  # QUA variable for the measured 'Q' quadrature
     I_st = declare_stream()  # Stream for the 'I' quadrature
     Q_st = declare_stream()  # Stream for the 'Q' quadrature
-    # n_st = declare_stream()  # Stream for the averaging iteration 'n'
-
-    stream_II = declare_stream()
-    stream_IQ = declare_stream()
-    stream_QI = declare_stream()
-    stream_QQ = declare_stream()
-
-    II = declare(fixed)
-    IQ = declare(fixed)
-    QI = declare(fixed)
-    QQ = declare(fixed)
 
     with for_(n, 0, n < n_avg, n + 1):  # QUA for_ loop for averaging
         with for_(*from_array(f, frequencies)):  # QUA for_ loop for sweeping the frequency
-
             reset_phase('resonator')  # Reset the phase of the resonator element
-
             update_frequency("resonator", f)
-            measure("readout", "resonator", None,
-                    ("cos", "out1", II), ("sin", "out1", IQ),
-                    ("cos", "out2", QI), ("sin", "out2", QQ))
-
-            wait(depletion_time * u.ns, "resonator")
-
-            save(II, stream_II)
-            save(IQ, stream_IQ)
-            save(QI, stream_QI)
-            save(QQ, stream_QQ)
-        # Save the averaging iteration to get the progress bar
-        # save(n, n_st)
+            measure(
+                "readout",
+                "resonator",
+                None,
+                dual_demod.full('cos', 'out1', 'sin', 'out2', I),
+                dual_demod.full('minus_sin', 'out1', 'cos', 'out2', Q)
+            )
+            save(I, I_st)
+            save(Q, Q_st)
+            wait(depletion_time, "resonator")
 
     with stream_processing():
-        stream_II.buffer(len(frequencies)).average().save("II")
-        stream_IQ.buffer(len(frequencies)).average().save("IQ")
-        stream_QI.buffer(len(frequencies)).average().save("QI")
-        stream_QQ.buffer(len(frequencies)).average().save("QQ")
-
-        #####################################
-        #  Open Communication with the QOP  #
-        #####################################
+        I_st.buffer(len(frequencies)).average().save("I")
+        Q_st.buffer(len(frequencies)).average().save("Q")
 
 with program() as resonator_spec_with_drive:
     n = declare(int)  # QUA variable for the averaging loop
@@ -91,47 +74,29 @@ with program() as resonator_spec_with_drive:
     Q = declare(fixed)  # QUA variable for the measured 'Q' quadrature
     I_st = declare_stream()  # Stream for the 'I' quadrature
     Q_st = declare_stream()  # Stream for the 'Q' quadrature
-    # n_st = declare_stream()  # Stream for the averaging iteration 'n'
-
-    stream_II = declare_stream()
-    stream_IQ = declare_stream()
-    stream_QI = declare_stream()
-    stream_QQ = declare_stream()
-
-    II = declare(fixed)
-    IQ = declare(fixed)
-    QI = declare(fixed)
-    QQ = declare(fixed)
 
     with for_(n, 0, n < n_avg, n + 1):  # QUA for_ loop for averaging
         with for_(*from_array(f, frequencies)):  # QUA for_ loop for sweeping the frequency
-
-            reset_phase('resonator')  # Reset the phase of the resonator element
-
             update_frequency("resonator", f)
             play("saturation", "qubit")
-            measure("readout", "resonator", None,
-                    ("cos", "out1", II), ("sin", "out1", IQ),
-                    ("cos", "out2", QI), ("sin", "out2", QQ))
-
-            wait(depletion_time * u.ns, "resonator")
-
-            save(II, stream_II)
-            save(IQ, stream_IQ)
-            save(QI, stream_QI)
-            save(QQ, stream_QQ)
-        # Save the averaging iteration to get the progress bar
-        # save(n, n_st)
-
+            align("qubit", "resonator")
+            measure(
+                "readout",
+                "resonator",
+                None,
+                dual_demod.full('cos', 'out1', 'sin', 'out2', I),
+                dual_demod.full('minus_sin', 'out1', 'cos', 'out2', Q)
+            )
+            save(I, I_st)
+            save(Q, Q_st)
+            wait(thermalization_time, "resonator")
     with stream_processing():
-        stream_II.buffer(len(frequencies)).average().save("II")
-        stream_IQ.buffer(len(frequencies)).average().save("IQ")
-        stream_QI.buffer(len(frequencies)).average().save("QI")
-        stream_QQ.buffer(len(frequencies)).average().save("QQ")
+        I_st.buffer(len(frequencies)).average().save("I")
+        Q_st.buffer(len(frequencies)).average().save("Q")
 
-        #####################################
-        #  Open Communication with the QOP  #
-        #####################################
+#####################################
+#  Open Communication with the QOP  #
+#####################################
 
 qmm = QuantumMachinesManager(host=qm_host, port=qm_port)
 
@@ -144,7 +109,7 @@ if simulate:
     # Simulates the QUA program for the specified duration
     simulation_config = SimulationConfig(duration=10_000)  # In clock cycles = 4ns
     # Simulate blocks python until the simulation is done
-    job = qmm.simulate(config, resonator_spec_without_drive, simulation_config)
+    job = qmm.simulate(config, resonator_spec_with_drive, simulation_config)
     # Plot the simulated samples
     job.get_simulated_samples().con1.plot()
 
@@ -159,20 +124,16 @@ else:
     results = job.result_handles
     results.wait_for_all_values()
 
-    II = results.II.fetch_all()
-    QI = results.QI.fetch_all()
-    IQ = results.IQ.fetch_all()
-    QQ = results.QQ.fetch_all()
-
-    I_m = II + QQ
-    Q_m = IQ - QI
+    I_m = results.I.fetch_all()
+    Q_m = results.Q.fetch_all()
 
     s = I_m + 1j * Q_m
 
-    S = u.demod2volts(s, 1000)
+    S = u.demod2volts(s, resonator_args['readout_pulse_length'])
 
     R1 = np.abs(S)  # Amplitude
     phase1 = np.angle(S)  # Phase
+    phase1 = signal.detrend(np.unwrap(phase1))
 
     qm = qmm.open_qm(config)
     # Send the QUA program to the OPX, which compiles and executes it
@@ -180,63 +141,75 @@ else:
     # Get results from QUA program
     # results = fetching_tool(job, data_list=["I", "Q", "iteration"], mode="live")
 
-    results = job.result_handles
-    results.wait_for_all_values()
+    # results.wait_for_all_values()
     # Live plotting
     fig = plt.figure()
     interrupt_on_close(fig, job)  # Interrupts the job when closing the figure
     # while results.is_processing():
     # Fetch results
-    # I, Q, iteration = results.fetch_all()
+    results = job.result_handles
+    results.wait_for_all_values()
 
-    II = results.II.fetch_all()
-    QI = results.QI.fetch_all()
-    IQ = results.IQ.fetch_all()
-    QQ = results.QQ.fetch_all()
-
-    I_m = II + QQ
-    Q_m = IQ - QI
+    I_m = results.I.fetch_all()
+    Q_m = results.Q.fetch_all()
 
     s = I_m + 1j * Q_m
 
-    S = u.demod2volts(s, 1000)
-
+    S = u.demod2volts(s, resonator_args['readout_pulse_length'])
+    phase2 = np.angle(S)  # Phase
+    phase2 = signal.detrend(np.unwrap(phase2))
     R2 = np.abs(S)  # Amplitude
 
-    res_freq = frequencies[np.argmax(abs(R1 - R2))]
+    diff = np.abs(R1 - R2)
+    # diff = np.abs(phase1 - phase2)
 
-    max_freq1 = f_LO - frequencies[np.argmin(R1)]
-    max_freq2 = f_LO - frequencies[np.argmin(R2)]
+    res_freq = frequencies[np.argmax(diff)]
+    print("Resonator  freq is: ", (resonator_LO - res_freq) / 1e6, "MHz")
 
-
-    phase2 = np.angle(S)  # Phase
+    ground = R1[np.argmax(diff)]
+    excited = R2[np.argmax(diff)]
+    print('ground state amplitude: ', ground)
+    print('excited state amplitude: ', excited)
 
     plt.suptitle(f"Resonator spectroscopy - LO = {resonator_LO / u.GHz} GHz")
     plt.subplot(311)
-    plt.axvline(x=max_freq1 / u.MHz, color='r', linestyle='--',
-                label=f"Resonator frequency: {max_freq1 / u.MHz} MHz")
-    plt.axvline(x=max_freq2 / u.MHz, color='r', linestyle='--',
-                label=f"Resonator frequency: {max_freq1 / u.MHz} MHz")
+    plt.title(f'resonator amp = {readout_pulse_amplitude}')
+    plt.axvline(x=(resonator_LO - res_freq) / u.MHz, color='r', linestyle='--')
+    plt.axvline(x=center / u.MHz, color='g', linestyle='--')
 
     # plt.cla()
-    plt.plot((f_LO - frequencies) / u.MHz, R1)
-    plt.plot((f_LO - frequencies) / u.MHz, R2)
+    plt.plot((resonator_LO - frequencies) / u.MHz, R1, label='Without Drive')
+    plt.plot((resonator_LO - frequencies) / u.MHz, R2, label='With Drive')
+    plt.legend()
 
     plt.ylim([0, max(R1) * 1.2])
 
     plt.ylabel(r"$R=\sqrt{I^2 + Q^2}$ [V]")
     plt.subplot(312)
-    plt.plot((f_LO - frequencies) / u.MHz, signal.detrend(np.unwrap(phase1)), )
-    plt.plot((f_LO - frequencies) / u.MHz, signal.detrend(np.unwrap(phase2)), )
+    plt.plot((resonator_LO - frequencies) / u.MHz, phase1, label='Without Drive')
+    plt.plot((resonator_LO - frequencies) / u.MHz, phase2, label='With Drive')
 
-    plt.ylim([-np.pi / 2, np.pi / 2])
+    # plt.ylim([-np.pi / 2, np.pi / 2])
     plt.xlabel("Intermediate frequency [MHz]")
     plt.ylabel("Phase [rad]")
+    plt.legend()
     plt.subplot(313)
-    plt.plot((f_LO - frequencies) / u.MHz, np.abs(R1 - R2))
-    plt.axvline(x=(f_LO - res_freq) / u.MHz, color='r', linestyle='--')
-
-    plt.show()
+    plt.ylabel("Diff [V]")
+    plt.plot((resonator_LO - frequencies) / u.MHz, diff)
+    plt.axvline(x=(resonator_LO - res_freq) / u.MHz, color='r', linestyle='--',
+                label=f'new freq = {(resonator_LO - res_freq) / u.MHz} MHz')
+    plt.axvline(x=center / u.MHz, color='g', linestyle='--',
+                label=f'old freq = {(center) / u.MHz} MHz')
+    plt.legend()
     plt.tight_layout()
+    plt.show()
 
-    print("Resonator freq is: ", (f_LO - res_freq)/1e6, "MHz")
+    response = input("Do you want to update resonator frequency? (yes/no): ").strip().lower()
+
+    if response == 'y':
+        print("Updated the resonator frequency in the configuration file.")
+        modify_json(qubit, 'resonator', "resonator_freq", resonator_LO - res_freq)
+    elif response == 'n':
+        print("Okay, maybe next time.")
+    else:
+        print("Invalid response. Please enter 'y' or 'n'.")
