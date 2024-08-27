@@ -93,7 +93,16 @@ else:
     # Send the QUA program to the OPX, which compiles and executes it
     job = qm.execute(power_rabi)
     # Get results from QUA program
-    results = fetching_tool(job, data_list=["I", "Q", "iteration"])
+    results = fetching_tool(job, data_list=["I", "Q", "iteration"], mode="live")
+    while results.is_processing():
+        I, Q, iteration = results.fetch_all()
+
+        S = u.demod2volts(I + 1j * Q, resonator_args['readout_pulse_length'])
+        R = np.abs(S)  # Amplitude
+        phase = np.angle(S)  # Phase
+        progress_counter(iteration, n_avg, start_time=results.get_start_time())
+
+
     # Live plotting
     fig = plt.figure()
     interrupt_on_close(fig, job)  # Interrupts the job when closing the figure

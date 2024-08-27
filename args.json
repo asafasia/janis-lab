@@ -20,7 +20,8 @@
             "pi_pulse_length": 40,
             "pi_pulse_amplitude": 0.3,
             "saturation_length": 60000,
-            "saturation_amplitude": 0.002,
+            "saturation_amplitude": 0.4,
+            "res_pulse_length": 1000,
             "qubit_anharmonicity": -300000000.0,
             "qubit_T1": 40000.0,
             "qubit_T2": 0.00012,
@@ -42,9 +43,9 @@
                 1.0443468070268112
             ],
             "resonator_LO": 6950000000.0,
-            "resonator_freq": 6874880000.0,
-            "readout_pulse_length": 1500,
-            "readout_pulse_amplitude": 0.3,
+            "resonator_freq": 6874780000.0,
+            "readout_pulse_length": 2000,
+            "readout_pulse_amplitude": 0.1,
             "time_of_flight": 248,
             "smearing": 0,
             "rotating_frame": 0.9957103382627649

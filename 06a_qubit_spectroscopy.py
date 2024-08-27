@@ -44,11 +44,10 @@ saturation_len = qubit_args['saturation_length']
 saturation_amp = qubit_args['saturation_amplitude']
 
 n_avg = 1000
-span = 500 * u.MHz
-df = 2000 * u.kHz
+span = 20 * u.MHz
+df = 200 * u.kHz
 
 frequencies = f_LO - np.arange(center - span / 2, center + span / 2, df)
-
 
 with program() as qubit_spec:
     n = declare(int)  # QUA variable for the averaging loop
@@ -63,8 +62,6 @@ with program() as qubit_spec:
         with for_(*from_array(df, frequencies)):
             update_frequency("qubit", df)
             play("saturation", "qubit")
-            align("qubit", "resonator")
-
             measure(
                 "readout",
                 "resonator",
@@ -73,6 +70,7 @@ with program() as qubit_spec:
                 dual_demod.full('minus_sin', 'out1', 'cos', 'out2', Q)
             )
             wait(thermalization_time // 4, "resonator")
+            align("qubit", "resonator")
             save(I, I_st)
             save(Q, Q_st)
         save(n, n_st)
@@ -129,7 +127,7 @@ else:
     plt.xlim([(f_LO - frequencies)[0] / 1e6, (f_LO - frequencies)[-1] / 1e6])
 
     plt.legend()
-    plt.ylim([0.01, 0.035])
+    # plt.ylim([0.01, 0.035])
     plt.show()
 
     response = input("Do you want to update qubit freq? (yes/no): ").strip().lower()
