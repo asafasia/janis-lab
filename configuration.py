@@ -1,7 +1,5 @@
 import json
 from qualang_tools.units import unit
-from qualang_tools.config.waveform_tools import drag_gaussian_pulse_waveforms
-
 import numpy as np
 
 
@@ -20,7 +18,6 @@ def IQ_imbalance(g, phi):
 
 
 u = unit(coerce_to_integer=True)
-depletion_time = 5 * u.us
 
 sa_address = "TCPIP0::192.168.43.100::inst0::INSTR"
 qm_host = "192.168.43.137"
@@ -45,6 +42,8 @@ anharmonicity = -200 * u.MHz
 AC_stark_detuning = 0 * u.MHz
 saturation_len = qubit_args['saturation_length']
 saturation_amp = qubit_args['saturation_amplitude']
+pi_pulse_length = qubit_args['pi_pulse_length']
+pi_pulse_amplitude = qubit_args['pi_pulse_amplitude']
 
 #############################################
 #                Resonators                 #
@@ -58,6 +57,7 @@ readout_pulse_amplitude = resonator_args['readout_pulse_amplitude']
 resonator_correction_matrix = resonator_args['resonator_correction_matrix']
 time_of_flight = resonator_args['time_of_flight']
 smearing = resonator_args['smearing']
+alpha = resonator_args["rotating_frame"]
 #############################################
 #                   else                    #
 #############################################
@@ -198,16 +198,16 @@ config = {
     },
     "integration_weights": {
         "cosine_weights": {
-            "cosine": [(1.0, readout_pulse_length)],
-            "sine": [(0.0, readout_pulse_length)]
+            "cosine": [(np.cos(alpha), readout_pulse_length)],
+            "sine": [(-np.sin(alpha), readout_pulse_length)]
         },
         "sine_weights": {
-            "cosine": [(0.0, readout_pulse_length)],
-            "sine": [(1.0, readout_pulse_length)]
+            "cosine": [(np.sin(alpha), readout_pulse_length)],
+            "sine": [(np.cos(alpha), readout_pulse_length)]
         },
         "minus_sine_weights": {
-            "cosine": [(0.0, readout_pulse_length)],
-            "sine": [(-1.0, readout_pulse_length)],
+            "cosine": [(-np.sin(alpha), readout_pulse_length)],
+            "sine": [(-np.cos(alpha), readout_pulse_length)],
         },
     }
 

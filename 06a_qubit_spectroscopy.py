@@ -42,11 +42,13 @@ f_LO = qubit_args["qubit_LO"]
 center = qubit_args["qubit_freq"]
 saturation_len = qubit_args['saturation_length']
 saturation_amp = qubit_args['saturation_amplitude']
+
 n_avg = 1000
-span = 100 * u.MHz
-df = 200 * u.kHz
+span = 500 * u.MHz
+df = 2000 * u.kHz
 
 frequencies = f_LO - np.arange(center - span / 2, center + span / 2, df)
+
 
 with program() as qubit_spec:
     n = declare(int)  # QUA variable for the averaging loop
@@ -55,11 +57,14 @@ with program() as qubit_spec:
     Q = declare(fixed)  # QUA variable for the measured 'Q' quadrature
     I_st = declare_stream()  # Stream for the 'I' quadrature
     Q_st = declare_stream()  # Stream for the 'Q' quadrature
+    n_st = declare_stream()  # Stream for the averaging iteration 'n'
 
     with for_(n, 0, n < n_avg, n + 1):
         with for_(*from_array(df, frequencies)):
-            update_frequency("qubit", df + center)
+            update_frequency("qubit", df)
             play("saturation", "qubit")
+            align("qubit", "resonator")
+
             measure(
                 "readout",
                 "resonator",
@@ -67,13 +72,15 @@ with program() as qubit_spec:
                 dual_demod.full('cos', 'out1', 'sin', 'out2', I),
                 dual_demod.full('minus_sin', 'out1', 'cos', 'out2', Q)
             )
-            wait(30000, "resonator")
+            wait(thermalization_time // 4, "resonator")
             save(I, I_st)
             save(Q, Q_st)
+        save(n, n_st)
 
     with stream_processing():
         I_st.buffer(len(frequencies)).average().save("I")
         Q_st.buffer(len(frequencies)).average().save("Q")
+        n_st.save("iteration")
 
 #####################################
 #  Open Communication with the QOP  #
@@ -98,22 +105,15 @@ else:
     # Send the QUA program to the OPX, which compiles and executes it
     job = qm.execute(qubit_spec)
 
-    results = job.result_handles
-    results.wait_for_all_values()
+    results = fetching_tool(job, data_list=["I", "Q", "iteration"], mode="live")
+    while results.is_processing():
+        I, Q, iteration = results.fetch_all()
 
-    results = job.result_handles
-    results.wait_for_all_values()
+        S = u.demod2volts(I + 1j * Q, resonator_args['readout_pulse_length'])
+        R = np.abs(S)  # Amplitude
+        phase = np.angle(S)  # Phase
+        progress_counter(iteration, n_avg, start_time=results.get_start_time())
 
-    I_m = results.I.fetch_all()
-    Q_m = results.Q.fetch_all()
-
-    # Convert results into Volts
-    S = u.demod2volts(I_m + 1j * Q_m, resonator_args['readout_pulse_length'])
-    R = np.abs(S)  # Amplitude
-    phase = np.angle(S)  # Phase
-
-    # Progress bar
-    # Plot results
     plt.suptitle(f"Qubit spectroscopy")
 
     max_freq = frequencies[np.argmax(R)]
@@ -127,13 +127,12 @@ else:
     plt.xlabel("Qubit frequency [MHz]")
     plt.ylabel(r"$R=\sqrt{I^2 + Q^2}$ [V]")
     plt.xlim([(f_LO - frequencies)[0] / 1e6, (f_LO - frequencies)[-1] / 1e6])
+
     plt.legend()
-    # plt.ylim([0.08, 0.13])
+    plt.ylim([0.01, 0.035])
     plt.show()
 
-    print(f"Qubit IF frequency = {max_freq / 1e6} MHz")
-
-    response = input("Do you want to updata resonator IF freq? (yes/no): ").strip().lower()
+    response = input("Do you want to update qubit freq? (yes/no): ").strip().lower()
 
     if response == 'y':
         print("Updated the resonator frequency in the configuration file.")

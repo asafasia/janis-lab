@@ -25,7 +25,7 @@ from scipy.signal import savgol_filter
 ###################
 # The QUA program #
 ###################
-n_avg = 100  # Number of averaging loops
+n_avg = 5000  # Number of averaging loops
 
 with program() as raw_trace_prog:
     n = declare(int)  # QUA variable for the averaging loop
@@ -37,7 +37,7 @@ with program() as raw_trace_prog:
         # Sends the readout pulse and stores the raw ADC traces in the stream called "adc_st"
         measure("readout", "resonator", adc_st)
         # Wait for the resonator to deplete
-        wait(depletion_time * u.ns, "resonator")
+        wait(thermalization_time, "resonator")
 
     with stream_processing():
         # Will save average:
@@ -114,6 +114,8 @@ else:
     plt.plot(adc2, "r", label="Input 2")
     xl = plt.xlim()
     yl = plt.ylim()
+    plt.xlim([0, 80])
+
     plt.plot(xl, adc1_mean * np.ones(2), "k--")
     plt.plot(xl, adc2_mean * np.ones(2), "k--")
     plt.plot(delay * np.ones(2), yl, "k--")

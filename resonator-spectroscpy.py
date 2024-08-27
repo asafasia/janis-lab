@@ -33,10 +33,10 @@ from scipy import signal
 center = resonator_freq
 n_avg = 500  # The number of averages
 # The frequency sweep parameters
-span = 10 * u.MHz
+span = 30 * u.MHz
 f_min = center - span / 2
 f_max = center + span / 2
-df = 50 * u.kHz
+df = 300 * u.kHz
 
 frequencies = resonator_LO - np.arange(f_min, f_max + 0.1, df)
 
@@ -61,7 +61,7 @@ with program() as resonator_spec_without_drive:
             )
             save(I, I_st)
             save(Q, Q_st)
-            wait(depletion_time, "resonator")
+            wait(thermalization_time, "resonator")
 
     with stream_processing():
         I_st.buffer(len(frequencies)).average().save("I")

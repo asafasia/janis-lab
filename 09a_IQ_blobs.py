@@ -20,6 +20,8 @@ from matplotlib import pyplot as plt
 from qm.qua import *
 from qm import SimulationConfig
 from qm import QuantumMachinesManager
+
+from change_args import modify_json
 from configuration import *
 from qualang_tools.analysis.discriminator import two_state_discriminator
 
@@ -27,7 +29,7 @@ from qualang_tools.analysis.discriminator import two_state_discriminator
 # The QUA program #
 ###################
 
-n_runs = 10000  # Number of runs
+n_runs = 5000  # Number of runs
 
 with program() as IQ_blobs:
     n = declare(int)
@@ -55,9 +57,9 @@ with program() as IQ_blobs:
         save(I_g, I_g_st)
         save(Q_g, Q_g_st)
 
-        align()  # global align
+        # align()  # global align
         # Play the x180 gate to put the qubit in the excited state
-        play("saturation", "qubit")
+        play("saturation", "qubit",duration=10000)
 
         # wait(1250, "resonator")
 
@@ -125,6 +127,8 @@ else:
     # Plot the IQ blobs, rotate them to get the separation along the 'I' quadrature, estimate a threshold between them
     # for state discrimination and derive the fidelity matrix
     angle, threshold, fidelity, gg, ge, eg, ee = two_state_discriminator(Ig, Qg, Ie, Qe, b_print=True, b_plot=True)
+    modify_json(qubit, 'resonator', "rotating_frame", alpha)
+
     #########################################
     # The two_state_discriminator gives us the rotation angle which makes it such that all of the information will be in
     # the I axis. This is being done by setting the `rotation_angle` parameter in the configuration.

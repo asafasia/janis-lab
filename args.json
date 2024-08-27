@@ -16,15 +16,15 @@
                 1.0058827732545965
             ],
             "qubit_LO": 3850000000.0,
-            "qubit_freq": 3762800000.0,
-            "pi_pulse_length": 80,
-            "pi_pulse_amplitude": 0.6,
-            "saturation_length": 30000,
-            "saturation_amplitude": 0.4,
+            "qubit_freq": 3752950000.0,
+            "pi_pulse_length": 40,
+            "pi_pulse_amplitude": 0.3,
+            "saturation_length": 60000,
+            "saturation_amplitude": 0.002,
             "qubit_anharmonicity": -300000000.0,
-            "qubit_T1": 0.0001,
+            "qubit_T1": 40000.0,
             "qubit_T2": 0.00012,
-            "thermalization_time": 40000
+            "thermalization_time": 300000
         },
         "resonator": {
             "IQ_input": {
@@ -42,11 +42,12 @@
                 1.0443468070268112
             ],
             "resonator_LO": 6950000000.0,
-            "resonator_freq": 6874680000.0,
-            "readout_pulse_length": 2000,
-            "readout_pulse_amplitude": 0.051,
-            "time_of_flight": 200,
-            "smearing": 0
+            "resonator_freq": 6874880000.0,
+            "readout_pulse_length": 1500,
+            "readout_pulse_amplitude": 0.3,
+            "time_of_flight": 248,
+            "smearing": 0,
+            "rotating_frame": 0.9957103382627649
         },
         "else": {
             "const_length": 1000,

@@ -59,9 +59,11 @@ if __name__ == "__main__":
 
     center_freq = args['qubit1'][element][f"{element}_LO"] / 1e6,
     span = 500e6,
-    BW = 0.1e6,
+    BW = 0.2e6,
     points = 5000
-    average = False
+    average = True
 
     plot_traces(center_freq, span, BW, points, average)
+    plt.axvline(x=qubit_freq / u.MHz, color='r', linestyle='--', label='Qubit frequency')
+    plt.legend()
     plt.show()
