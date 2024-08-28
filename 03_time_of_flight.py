@@ -37,7 +37,7 @@ with program() as raw_trace_prog:
         # Sends the readout pulse and stores the raw ADC traces in the stream called "adc_st"
         measure("readout", "resonator", adc_st)
         # Wait for the resonator to deplete
-        wait(thermalization_time, "resonator")
+        wait(thermalization_time//4, "resonator")
 
     with stream_processing():
         # Will save average:

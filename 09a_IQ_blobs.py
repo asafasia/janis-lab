@@ -59,7 +59,7 @@ with program() as IQ_blobs:
         save(Q_e, Q_e_st)
 
         align()  # global align
-        play("saturation", "qubit")
+        play("res_spec", "qubit")
         align("qubit", "resonator")
 
         measure(

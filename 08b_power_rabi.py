@@ -92,6 +92,7 @@ else:
     qm = qmm.open_qm(config)
     # Send the QUA program to the OPX, which compiles and executes it
     job = qm.execute(power_rabi)
+
     # Get results from QUA program
     results = fetching_tool(job, data_list=["I", "Q", "iteration"], mode="live")
     while results.is_processing():
@@ -118,5 +119,9 @@ else:
     # Plot results
     plt.suptitle("Power Rabi")
     plt.plot(amplitudes * pi_pulse_amplitude, R, )
+    plt.xlabel("Rabi amplitude (V)")
+    plt.ylabel("amplitude (V)")
+
+print(job.execution_report())
 
 plt.show()

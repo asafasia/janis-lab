@@ -44,8 +44,8 @@ saturation_len = qubit_args['saturation_length']
 saturation_amp = qubit_args['saturation_amplitude']
 
 n_avg = 1000
-span = 20 * u.MHz
-df = 200 * u.kHz
+span = 100 * u.MHz
+df = 500 * u.kHz
 
 frequencies = f_LO - np.arange(center - span / 2, center + span / 2, df)
 
@@ -62,6 +62,7 @@ with program() as qubit_spec:
         with for_(*from_array(df, frequencies)):
             update_frequency("qubit", df)
             play("saturation", "qubit")
+            wait(100, "qubit")
             measure(
                 "readout",
                 "resonator",

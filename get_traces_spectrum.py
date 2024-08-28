@@ -64,6 +64,6 @@ if __name__ == "__main__":
     average = True
 
     plot_traces(center_freq, span, BW, points, average)
-    plt.axvline(x=qubit_freq / u.MHz, color='r', linestyle='--', label='Qubit frequency')
+    # plt.axvline(x=qubit_freq / u.MHz, color='r', linestyle='--', label='Qubit frequency')
     plt.legend()
     plt.show()

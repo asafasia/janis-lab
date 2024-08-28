@@ -42,6 +42,8 @@ anharmonicity = -200 * u.MHz
 AC_stark_detuning = 0 * u.MHz
 saturation_len = qubit_args['saturation_length']
 saturation_amp = qubit_args['saturation_amplitude']
+res_pulse_len = qubit_args['resonator_spec_pulse_length']
+res_pulse_amp = qubit_args['resonator_spec_pulse_amplitude']
 pi_pulse_length = qubit_args['pi_pulse_length']
 pi_pulse_amplitude = qubit_args['pi_pulse_amplitude']
 
@@ -97,6 +99,7 @@ config = {
             "operations": {
                 "cw": "const_pulse",
                 "saturation": "saturation_pulse",
+                "res_spec": "res_spec_pulse",
                 "x180": "x180_pulse",
 
             },
@@ -138,6 +141,11 @@ config = {
             "length": saturation_len,
             "waveforms": {"I": "saturation_drive_wf", "Q": "zero_wf"},
         },
+        "res_spec_pulse": {
+            "operation": "control",
+            "length": res_pulse_len,
+            "waveforms": {"I": "resonator_spec_drive_wf", "Q": "zero_wf"},
+        },
 
         "x180_pulse": {
             "operation": "control",
@@ -168,6 +176,7 @@ config = {
     "waveforms": {
         "const_wf": {"type": "constant", "sample": const_amp},
         "saturation_drive_wf": {"type": "constant", "sample": saturation_amp},
+        "resonator_spec_drive_wf": {"type": "constant", "sample": res_pulse_amp},
         "zero_wf": {"type": "constant", "sample": 0.0},
         "x180_I_wf": {"type": "constant", "sample": qubit_args['pi_pulse_amplitude']},
         "x180_Q_wf": {"type": "constant", "sample": qubit_args['pi_pulse_amplitude']},

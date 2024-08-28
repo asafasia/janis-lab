@@ -31,11 +31,11 @@ from scipy import signal
 # The QUA program #
 ###################
 center = resonator_freq
-n_avg = 1000  # The number of averages
+n_avg = 300  # The number of averages
 span = 10 * u.MHz
 f_min = center - span / 2
 f_max = center + span / 2
-df = 100 * u.kHz
+df = 50 * u.kHz
 
 frequencies = resonator_LO - np.arange(f_min, f_max + 0.1, df)
 
@@ -62,9 +62,9 @@ with program() as resonator_spec:
                 dual_demod.full('cos', 'out1', 'sin', 'out2', I1),
                 dual_demod.full('minus_sin', 'out1', 'cos', 'out2', Q1)
             )
-            wait(thermalization_time//4, "resonator")
+            wait(thermalization_time // 4, "resonator")
             align()
-            play("saturation", "qubit")
+            play("res_spec", "qubit")
             align("qubit", "resonator")
             measure(
                 "readout",
@@ -134,14 +134,13 @@ else:
 
     plt.suptitle(
         f"Resonator spectroscopy - LO = {resonator_LO / u.GHz} GHz "
-        f"\npulse amplitude = {readout_pulse_amplitude} , "
+        f"\nresonator pulse amplitude = {readout_pulse_amplitude} , "
         f" length = {readout_pulse_length / 1e3} us"
+        f"\n qubit pulse amplitude = {res_pulse_amp}, length = {res_pulse_len / 1e3} us"
     )
     plt.subplot(311)
     plt.axvline(x=(resonator_LO - res_freq) / u.MHz, color='r', linestyle='--')
     plt.axvline(x=center / u.MHz, color='g', linestyle='--')
-
-    plt.cla()
     plt.plot((resonator_LO - frequencies) / u.MHz, R1, label='Without Drive')
     plt.plot((resonator_LO - frequencies) / u.MHz, R2, label='With Drive')
     plt.legend()

@@ -15,6 +15,8 @@ from qualang_tools.plot.fitting import Fit
 from qm.qua import *
 from qm import QuantumMachinesManager
 from qm import SimulationConfig
+from scipy.optimize import curve_fit
+
 from configuration import *
 from qualang_tools.results import progress_counter, fetching_tool
 from qualang_tools.plot import interrupt_on_close
@@ -24,7 +26,7 @@ import matplotlib.pyplot as plt
 ###################
 # The QUA program #
 ###################
-n_avg = 1000
+n_avg = 100
 tau_min = 0
 tau_max = 160_000 // 4
 d_tau = 1000 // 4
@@ -42,7 +44,7 @@ with program() as T1:
     with for_(n, 0, n < n_avg, n + 1):
         with for_(*from_array(t, taus)):
             # Play the x180 gate to put the qubit in the excited state
-            play("saturation", "qubit")
+            play("res_spec", "qubit")
             # Wait a varying time after putting the qubit in the excited state
             wait(t, "qubit")
             # Align the two elements to measure after having waited a time "tau" after the qubit pulse.
@@ -104,22 +106,31 @@ else:
         # Convert the results into Volts
         I, Q = u.demod2volts(I, readout_pulse_length), u.demod2volts(Q, readout_pulse_length)
         # Progress bar
+        S = u.demod2volts(I + 1j * Q, resonator_args['readout_pulse_length'])
+        R = np.abs(S)  # Amplitude
         progress_counter(iteration, n_avg, start_time=results.get_start_time())
-        plt.plot(4 * taus, I, "o", label="I quadrature")
+
+    try:
+        fit = Fit()
+        plt.figure()
+
+        plt.plot(4 * taus / 1e3, R, "o")
+
+
+        def exp_decay(x, A, T1, C):
+            return A * np.exp(-x / T1) + C
+
+
+        args = curve_fit(exp_decay, 4 * taus / 1e3, R, p0=[1, 1, 1])
+        plt.plot(4 * taus / 1e3, exp_decay(4 * taus / 1e3, *args[0]), label="Fit")
+        qubit_T1 = args[1] * 4
+        plt.legend((f"Relaxation time T1 = {qubit_T1 / 1e3} us",))
+        print(f"Qubit decay time to update in the config: qubit_T1 = {qubit_T1 / 1e3:.0f} us")
         plt.xlabel("Delay [ns]")
         plt.ylabel("I quadrature [V]")
         plt.suptitle("T1 measurement")
         # plt.title("T1 measurement")
         plt.ylabel("I quadrature [V]")
-
-    try:
-        fit = Fit()
-        plt.figure()
-        decay_fit = fit.T1(4 * taus, I, plot=True)
-        qubit_T1 = np.round(np.abs(decay_fit["T1"][0]) / 4) * 4
-        plt.legend((f"Relaxation time T1 = {qubit_T1 / 1e3} us",))
-        print(f"Qubit decay time to update in the config: qubit_T1 = {qubit_T1 / 1e3:.0f} us")
-
 
     except (Exception,):
         print("Fit failed")
