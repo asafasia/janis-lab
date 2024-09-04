@@ -57,8 +57,8 @@ if __name__ == "__main__":
 
     pending_job = qm.queue.add_to_start(prog)
 
-    center_freq = args['qubit1'][element][f"{element}_LO"] / 1e6,
-    span = 500e6,
+    center_freq = args['qubit3'][element][f"{element}_LO"] / 1e6,
+    span = 1500e6,
     BW = 0.2e6,
     points = 5000
     average = True

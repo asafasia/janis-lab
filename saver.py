@@ -31,13 +31,15 @@ class Saver:
 
         return file_path
 
-    def save(self, file_name, data_dict, meta_data=None):
+    def save(self, file_name, data_dict,sweep, meta_data=None, args=None):
         """Saves the dictionary and metadata to a uniquely named file."""
         file_path = self._generate_filename(file_name)
 
         combined_data = {
             'data': data_dict,
-            'metadata': meta_data or {}
+            'sweep': sweep,
+            'metadata': meta_data or {},
+            'args': args or {}
         }
 
         with open(file_path, 'w') as f:

@@ -1,0 +1,16 @@
+Metadata-Version: 2.1
+Name: Labber
+Version: 1.8.6
+Summary: Python API for Labber project
+Home-page: https://bitbucket.it.keysight.com/projects/LABBER/repos/labber/browse
+Author: Keysight Technologies
+Author-email: labber@keysight.com
+Requires-Python: >=3.6, <3.10
+Requires-Dist: numpy
+Requires-Dist: h5py
+Requires-Dist: pyqt5
+Requires-Dist: qtpy
+Requires-Dist: msgpack
+Requires-Dist: sip
+Requires-Dist: future
+Requires-Dist: scipy

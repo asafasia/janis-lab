@@ -1,0 +1,8 @@
+numpy
+h5py
+pyqt5
+qtpy
+msgpack
+sip
+future
+scipy

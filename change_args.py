@@ -12,17 +12,13 @@ def modify_json(qubit, element, key_to_change, new_value):
         new_value (any): New value to assign to the specified key.
     """
 
-    file_path = "args.json"
+    file_path = 'C:/Users/owner/Documents/GitHub/janis-lab/args.json'
 
-    # Read the existing JSON data from the file
     with open(file_path, 'r') as file:
         data = json.load(file)
 
-    print(data[qubit][element][key_to_change])
     data[qubit][element][key_to_change] = new_value
-    print(data[qubit][element][key_to_change])
-    #
-    # Write the modified data back to the file
+
     with open(file_path, 'w') as file:
         json.dump(data, file, indent=4)
 
