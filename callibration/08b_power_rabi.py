@@ -53,7 +53,7 @@ with program() as power_rabi:
     with for_(n, 0, n < n_avg, n + 1):  # QUA for_ loop for averaging
         with for_(*from_array(a, amplitudes)):  # QUA for_ loop for sweeping the pulse amplitude pre-factor
             for _ in range(num_pis):
-                play("eco" * amp(a), "qubit")
+                play("x180" * amp(a), "qubit")
             wait(200, "qubit")
             align("qubit", "resonator")
             measure(

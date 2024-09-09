@@ -28,8 +28,8 @@ import matplotlib.pyplot as plt
 ###################
 n_avg = 1000
 tau_min = 4
-tau_max = 30_000
-N = 500
+tau_max = 20_000
+N = 200
 d_tau = (tau_max - tau_min) // N // 4 * 4
 taus = np.arange(tau_min, tau_max + 0.1, d_tau)  # Linear sweep
 
@@ -118,6 +118,8 @@ else:
         # Progress bar
         progress_counter(iteration, n_avg, start_time=results.get_start_time())
         # Plot results
+        if iteration % 100 == 0:
+            print(f"iteration {iteration}/{n_avg}")
     plt.suptitle(f"Echo measurement")
     plt.plot(2 * taus, state, ".")
     plt.ylabel("state [V]")

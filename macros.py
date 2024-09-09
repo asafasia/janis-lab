@@ -129,13 +129,13 @@ def readout_macro(threshold=None, state=None, I=None, Q=None):
         dual_demod.full('cos', 'out1', 'sin', 'out2', I),
         dual_demod.full('minus_sin', 'out1', 'cos', 'out2', Q)
     )
-
+    #
     # measure(
     #     "readout",
     #     "resonator",
     #     None,
-    #     demod.full('cos', I, 'out1'),
-    #     demod.full('sin', Q, 'out1')
+    #     demod.full('opt_cos', I, 'out1'),
+    #     demod.full('opt_sin', Q, 'out1')
     # )
 
     if threshold is not None:

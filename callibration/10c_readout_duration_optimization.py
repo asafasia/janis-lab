@@ -50,16 +50,19 @@ def update_readout_length(new_readout_length, ringdown_length):
 # The QUA program #
 ###################
 n_avg = 1e4  # number of averages
+# Set maximum readout duration for this scan and update the configuration accordingly
+# readout_len = 5 * u.us  # Readout pulse duration
 ringdown_len = 0 * u.us  # integration time after readout pulse to observe the ringdown of the resonator
 update_readout_length(readout_len, ringdown_len)
-
-division_length = 10  # Size of each demodulation slice in clock cycles
+# Set the accumulated demod parameters
+division_length = 4  # Size of each demodulation slice in clock cycles
 number_of_divisions = int((readout_len + ringdown_len) / (4 * division_length))
 print("Integration weights chunk-size length in clock cycles:", division_length)
 print("The readout has been sliced in the following number of divisions", number_of_divisions)
 
 # Time axis for the plots at the end
 x_plot = np.arange(division_length * 4, readout_len + ringdown_len + 1, division_length * 4)
+
 
 with program() as ro_duration_opt:
     n = declare(int)
@@ -96,7 +99,7 @@ with program() as ro_duration_opt:
             assign(Q[ind], QQ[ind] + QI[ind])
             save(Q[ind], Qg_st)
         # Wait for the qubit to decay to the ground state
-        wait(thermalization_time//4, "resonator")
+        wait(thermalization_time * u.ns, "resonator")
 
         align()
 
@@ -121,7 +124,7 @@ with program() as ro_duration_opt:
             save(Q[ind], Qe_st)
 
         # Wait for the qubit to decay to the ground state
-        wait(thermalization_time //4, "resonator")
+        wait(thermalization_time * u.ns, "resonator")
         # Save the averaging iteration to get the progress bar
         save(n, n_st)
 
@@ -134,20 +137,20 @@ with program() as ro_duration_opt:
         Qe_st.buffer(number_of_divisions).average().save("Qe_avg")
         # variances
         (
-                ((Ig_st.buffer(number_of_divisions) * Ig_st.buffer(number_of_divisions)).average())
-                - (Ig_st.buffer(number_of_divisions).average() * Ig_st.buffer(number_of_divisions).average())
+            ((Ig_st.buffer(number_of_divisions) * Ig_st.buffer(number_of_divisions)).average())
+            - (Ig_st.buffer(number_of_divisions).average() * Ig_st.buffer(number_of_divisions).average())
         ).save("Ig_var")
         (
-                ((Qg_st.buffer(number_of_divisions) * Qg_st.buffer(number_of_divisions)).average())
-                - (Qg_st.buffer(number_of_divisions).average() * Qg_st.buffer(number_of_divisions).average())
+            ((Qg_st.buffer(number_of_divisions) * Qg_st.buffer(number_of_divisions)).average())
+            - (Qg_st.buffer(number_of_divisions).average() * Qg_st.buffer(number_of_divisions).average())
         ).save("Qg_var")
         (
-                ((Ie_st.buffer(number_of_divisions) * Ie_st.buffer(number_of_divisions)).average())
-                - (Ie_st.buffer(number_of_divisions).average() * Ie_st.buffer(number_of_divisions).average())
+            ((Ie_st.buffer(number_of_divisions) * Ie_st.buffer(number_of_divisions)).average())
+            - (Ie_st.buffer(number_of_divisions).average() * Ie_st.buffer(number_of_divisions).average())
         ).save("Ie_var")
         (
-                ((Qe_st.buffer(number_of_divisions) * Qe_st.buffer(number_of_divisions)).average())
-                - (Qe_st.buffer(number_of_divisions).average() * Qe_st.buffer(number_of_divisions).average())
+            ((Qe_st.buffer(number_of_divisions) * Qe_st.buffer(number_of_divisions)).average())
+            - (Qe_st.buffer(number_of_divisions).average() * Qe_st.buffer(number_of_divisions).average())
         ).save("Qe_var")
 
 #####################################
@@ -191,6 +194,7 @@ else:
         SNR = (np.abs(excited_trace - ground_trace) ** 2) / (2 * var)
     # Plot results
     plt.subplot(221)
+    plt.cla()
     plt.plot(x_plot, ground_trace.real, label="ground")
     plt.plot(x_plot, excited_trace.real, label="excited")
     plt.xlabel("Readout duration [ns]")
@@ -199,6 +203,7 @@ else:
     plt.legend()
 
     plt.subplot(222)
+    plt.cla()
     plt.plot(x_plot, ground_trace.imag, label="ground")
     plt.plot(x_plot, excited_trace.imag, label="excited")
     plt.xlabel("Readout duration [ns]")
@@ -206,8 +211,7 @@ else:
     plt.legend()
 
     plt.subplot(212)
-    plt.ylim([0, 1])
-
+    plt.cla()
     plt.plot(x_plot, SNR, ".-")
     plt.xlabel("Readout duration [ns]")
     plt.ylabel("SNR")

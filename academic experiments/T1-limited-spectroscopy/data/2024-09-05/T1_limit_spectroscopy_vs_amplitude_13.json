@@ -1,0 +1,31 @@
+{
+    "data": null,
+    "sweep": {
+        "detunings": [
+            1000000.0,
+            0.0
+        ],
+        "frequencies": [
+            119632232.0,
+            118632232.0
+        ],
+        "lengths": [
+            1000,
+            11000
+        ],
+        "amps": [
+            0.0,
+            0.1
+        ]
+    },
+    "metadata": {
+        "qubit": "qubit4",
+        "n_avg": 50,
+        "N": 2,
+        "span": 2000000.0,
+        "state_discrimination": true,
+        "pulse_type": "lorentzian",
+        "cutoff": 0.01,
+        "eco": true,
+        "n": 0.5,
+        "pulse_length": 

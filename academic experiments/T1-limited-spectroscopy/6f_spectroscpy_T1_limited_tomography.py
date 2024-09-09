@@ -24,16 +24,16 @@ pi_amp = qubit_args['pi_pulse_amplitude']
 rabi_freq = saturation_amp / pi_amp / (2 * pi_pulse_length * 1e-9)
 
 print(f"saturation amp = {rabi_freq / 1e6:.4f} MHz")
-n_avg = 200
-N = 5
-max_time = 4000 // 4
+n_avg = 1
+N = 2
+max_time = 3000 // 4
 dt = max_time // N // 4 * 4 + 1
 print(dt)
 
 taus = np.arange(4, max_time, dt)
 
 basis = 'z'
-
+basis_vec = ['x', 'y', 'z']
 print(taus)
 with program() as qubit_spec:
     n = declare(int)  # QUA variable for the averaging loop
@@ -44,31 +44,53 @@ with program() as qubit_spec:
     Q_st = declare_stream()  # Stream for the 'Q' quadrature
     n_st = declare_stream()  # Stream for the averaging iteration 'n'
     statex = declare(bool)  # QUA variable for state discrimination
+    statey = declare(bool)  # QUA variable for state discrimination
+    statez = declare(bool)  # QUA variable for state discrimination
+
     state_stx = declare_stream()  # Stream for the qubit state
+    state_sty = declare_stream()  # Stream for the qubit state
+    state_stz = declare_stream()  # Stream for the qubit state
+
     tau = declare(int)  # QUA variable for the qubit frequency
     c = declare(int)  # QUA variable for switching between projections
 
     with for_(n, 0, n < n_avg, n + 1):
         with for_(*from_array(tau, taus)):
-            # the experiment:
-            with if_(tau < saturation_len // 4):
-                play("saturation", "qubit", duration=tau)
-            with else_():
-                play("saturation", "qubit")
-            wait(100, "qubit")
-            wait(tau, "resonator")
-            # tomography:
-            #
-            play("-y90", "qubit")
-            align("qubit", "resonator")
-            statex, _, _ = readout_macro(threshold=ge_threshold, state=statex)
-            wait(thermalization_time // 4, "resonator")
-            save(statex, state_stx)
+            for b in basis_vec:
+                play("-y90", "qubit2")
+                wait(100, "qubit2")
+                align("qubit", "qubit2")
+                # the experiment:
+                with if_(tau < saturation_len // 4):
+                    play("saturation", "qubit", duration=tau)
+                with else_():
+                    play("saturation", "qubit")
+
+                wait(100, "qubit")
+                wait(tau, "resonator")
+                if basis == 'x':
+                    play("-y90", "qubit2")
+                    align("qubit", "resonator")
+                    statex, _, _ = readout_macro(threshold=ge_threshold, state=statex)
+                elif basis == 'y':
+                    play("x90", "qubit2")
+                    align("qubit", "resonator")
+                    statey, _, _ = readout_macro(threshold=ge_threshold, state=statex)
+                else:
+                    wait(10, "qubit")
+                    align("qubit", "resonator")
+                    statez, _, _ = readout_macro(threshold=ge_threshold, state=statex)
+
+                wait(thermalization_time // 4, "resonator")
+                save(statex, state_stx)
 
         save(n, n_st)
 
     with stream_processing():
         state_stx.boolean_to_int().buffer(len(taus)).average().save("statex")
+        state_sty.boolean_to_int().buffer(len(taus)).average().save("statey")
+        state_stz.boolean_to_int().buffer(len(taus)).average().save("statez")
+
         n_st.save("iteration")
 
 #####################################

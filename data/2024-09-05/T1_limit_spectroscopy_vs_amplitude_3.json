@@ -1,0 +1,104 @@
+{
+    "data": null,
+    "sweep": {
+        "detunings": [
+            1000000.0,
+            0.0
+        ],
+        "frequencies": [
+            119632232.0,
+            118632232.0
+        ],
+        "lengths": [
+            1000,
+            11000
+        ],
+        "amps": [
+            0.0,
+            0.1
+        ]
+    },
+    "metadata": {
+        "qubit": "qubit4",
+        "n_avg": 50,
+        "N": 2,
+        "span": 2000000,
+        "state_discrimination": true,
+        "pulse_type": "lorentzian",
+        "cutoff": 0.01,
+        "eco": true,
+        "n": 0.5,
+        "pulse_length": 20000,
+        "pulse_amplitude": 0.1
+    },
+    "args": {
+        "qubit4": {
+            "qubit": {
+                "IQ_input": {
+                    "I": 3,
+                    "Q": 4
+                },
+                "IQ_bias": {
+                    "I": -0.018780838815789482,
+                    "Q": -0.0589124177631579
+                },
+                "qubit_correction_matrix": [
+                    1.0010660959684614,
+                    0.04831948818439604,
+                    0.04808810994887618,
+                    1.0058827732545965
+                ],
+                "qubit_LO": 4500000000.0,
+                "qubit_freq": 4381367768.0,
+                "pi_pulse_length": 40,
+                "pi_pulse_amplitude": 0.04475028,
+                "saturation_length": 100000,
+                "saturation_amplitude": 0.00011,
+                "resonator_spec_pulse_length": 200,
+                "resonator_spec_pulse_amplitude": 0.4,
+                "qubit_anharmonicity": -200000000.0,
+                "T1": 31000.0,
+                "T2": 14700,
+                "thermalization_time": 220000
+            },
+            "resonator": {
+                "IQ_input": {
+                    "I": 1,
+                    "Q": 2
+                },
+                "IQ_bias": {
+                    "I": -0.00412212171052633,
+                    "Q": 0.022193667763157888
+                },
+                "resonator_correction_matrix": [
+                    0.9702110768983646,
+                    -0.06546164195563983,
+                    -0.06081467354520861,
+                    1.0443468070268112
+                ],
+                "resonator_LO": 7100000000.0,
+                "resonator_freq": 6979100000.0,
+                "readout_pulse_length": 2584,
+                "readout_pulse_amplitude": 0.04,
+                "time_of_flight": 624,
+                "smearing": 124,
+                "rotation_angle": 336.48556280490635,
+                "threshold": -0.015240321369509549,
+                "fidelity_matrix": [
+                    [
+                        0.6090666666666666,
+                        0.39093333333333335
+                    ],
+                    [
+                        0.2718,
+                        0.7282
+                    ]
+                ]
+            },
+            "else": {
+                "const_length": 1000,
+                "const_amplitude": 0.01
+            }
+        }
+    }
+}

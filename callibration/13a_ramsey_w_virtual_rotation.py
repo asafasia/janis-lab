@@ -15,13 +15,14 @@ import matplotlib.pyplot as plt
 ###################
 # The QUA program #
 ###################
-n_avg = 1000
+n_avg = 5000
 tau_min = 4
-tau_max = 3000
+tau_max = 30_000 // 4
 N = 200
 d_tau = tau_max // N // 4 * 4
+
 taus = np.arange(tau_min, tau_max + 0.01, d_tau)  # + 0.1 to add tau_max to taus
-detuning = 0.5 * u.MHz  # in Hz
+detuning = 0.25 * u.MHz  # in Hz
 state_discrimination = True
 
 print("qubit_freq", qubit_freq / 1e6, "MHz")
@@ -39,9 +40,8 @@ with program() as ramsey:
     n_st = declare_stream()  # Stream for the averaging iteration 'n'
 
     with for_(n, 0, n < n_avg, n + 1):
-        with for_(*from_array(tau, taus // 4)):
-            assign(phase, Cast.mul_fixed_by_int(detuning * 1e-9, tau))
-            # with strict_timing_():
+        with for_(*from_array(tau, taus)):
+            assign(phase, Cast.mul_fixed_by_int(detuning * 1e-9, 4 * tau))
             play("x90", "qubit")
             wait(tau, "qubit")
             frame_rotation_2pi(phase, "qubit")
@@ -63,61 +63,27 @@ with program() as ramsey:
         save(n, n_st)
 
     with stream_processing():
-        # Cast the data into a 1D vector, average the 1D vectors together and store the results on the OPX processor
         I_st.buffer(len(taus)).average().save("I")
         Q_st.buffer(len(taus)).average().save("Q")
         state_st.boolean_to_int().buffer(len(taus)).average().save("state")
         n_st.save("iteration")
 
-#####################################
-#  Open Communication with the QOP  #
-#####################################
 qmm = QuantumMachinesManager(host=qm_host, port=qm_port)
-
-###########################
-# Run or Simulate Program #
-###########################
 simulate = False
 
 if simulate:
-    # Simulates the QUA program for the specified duration
     simulation_config = SimulationConfig(duration=10_000)  # In clock cycles = 4ns
     job = qmm.simulate(config, ramsey, simulation_config)
     job.get_simulated_samples().con1.plot()
 else:
-    # Open the quantum machine
     qm = qmm.open_qm(config)
-    # Send the QUA program to the OPX, which compiles and executes it
     job = qm.execute(ramsey)
-    # Get results from QUA program
     results = fetching_tool(job, data_list=["I", "Q", "state", "iteration"], mode="live")
-    # Live plotting
     while results.is_processing():
-        # Fetch results
         I, Q, state, iteration = results.fetch_all()
-        # Convert the results into Volts
         I, Q = u.demod2volts(I, readout_len), u.demod2volts(Q, readout_len)
-        # Progress bar
         progress_counter(iteration, n_avg, start_time=results.get_start_time())
-        # Plot results
 
-    # plt.suptitle(f"Ramsey with frame rotation (detuning={detuning / u.MHz} MHz)")
-    # plt.subplot(311)
-    # plt.cla()
-    # plt.plot(taus, I, ".")
-    # plt.ylabel("I quadrature [V]")
-    # plt.subplot(312)
-    # plt.cla()
-    # plt.plot(taus, Q, ".")
-    # plt.ylabel("Q quadrature [V]")
-    # plt.subplot(313)
-    # plt.cla()
-    # plt.plot(taus, state, ".")
-    # plt.ylim((0, 1))
-    # plt.xlabel("Idle time [ns]")
-    # plt.ylabel("State")
-    # plt.pause(0.1)
-    # plt.tight_layout()
     # %%
     plt.title(f"Ramsey measurement with virtual Z rotations \n(detuning = {detuning / 1e6} MHz)")
 
@@ -126,15 +92,17 @@ else:
         return A * np.exp(-x / T2) * np.cos(2 * np.pi * f * x) + C
 
 
-    if state_discrimination:
-        y = state
-    else:
-        y = I
+    y = state_measurement_stretch(fid_matrix, state)
 
-    plt.plot(taus / 1e3, y, '.', label='I')
-    args = curve_fit(exp_decay, taus, y, p0=[max(y) - min(y), 0.8e3, detuning / 1e9, np.mean(I)])[0]
-    plt.plot(taus / 1e3, exp_decay(taus, *args), label=f"T2* = {args[1] / 1e3:.2f} us")
-    qubit_detuning = args[2] * u.GHz - detuning
+    plt.plot(taus * 4 / 1e3, y, '.', label='I')
+    try:
+        args = curve_fit(exp_decay, taus * 4, y, p0=[max(y) / 2 - min(y) / 2, 10000, detuning / 1e9, np.mean(I)])[0]
+        plt.plot(taus * 4 / 1e3, exp_decay(taus * 4, *args),
+                 label=f"T2* = {args[1] / 1e3:.2f} us, f = {args[2] * 1e3:.4} MHz")
+        qubit_detuning = args[2] * u.GHz - detuning
+    except RuntimeError:
+        print("Fit failed.")
+        qubit_detuning = 0
     print(f"Qubit detuning to update in the config: qubit_IF += {qubit_detuning / 1e6:0.4f} MHz")
     plt.legend()
     plt.xlabel("Idle time [us]")

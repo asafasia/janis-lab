@@ -87,7 +87,7 @@ def amp_V_to_Hz(amp):
     return amp / pi_pulse_amplitude / (2 * pi_pulse_length * 1e-9) / 1e6
 
 
-opt_weights = True
+opt_weights = False
 if opt_weights:
     from qualang_tools.config.integration_weights_tools import convert_integration_weights
 
