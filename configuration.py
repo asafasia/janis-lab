@@ -1,9 +1,7 @@
 import json
 from qualang_tools.units import unit
 import numpy as np
-from qualang_tools.config.waveform_tools import drag_gaussian_pulse_waveforms
 
-import os
 from pulses import *
 
 args_path = 'C:/Users/owner/Documents/GitHub/janis-lab/args.json'
@@ -85,6 +83,10 @@ ringdown_length = 0
 
 def amp_V_to_Hz(amp):
     return amp / pi_pulse_amplitude / (2 * pi_pulse_length * 1e-9) / 1e6
+
+
+print(amp_V_to_Hz(0.04467))
+
 
 
 opt_weights = False

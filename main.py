@@ -1,31 +1,17 @@
 import numpy as np
-from qutip import *
-from configuration import *
-import experiments_objects.qubit_spectroscopy as qubit_spectroscopy
-from datetime import datetime, timedelta
+import labber_util as lu
 
-n_avg = 10000
-sweep_points_1 = 200
-sweep_points_2 = 100
+if __name__ == "__main__":
+    result_X = np.array([1, 1, 1])
+    delay_vec = np.array([1, 2, 3])
+    meta_data = {}
+    meta_data["tags"] = ["Nadav-Lab", "spin-locking", "overnight"]
+    meta_data["user"] = "Guy"
+    measured_data = dict(X=result_X)
+    sweep_parameters = dict(hold_time=delay_vec)
+    units = dict(hold_time="s", detuning="Hz")
+    exp_result = dict(measured_data=measured_data, sweep_parameters=sweep_parameters, units=units, meta_data=meta_data)
 
-time_ns = n_avg * sweep_points_1 * sweep_points_2 * thermalization_time * 1.1
-tim_sec = time_ns * 1e-9
-time_min = tim_sec / 60
-time_hr = time_min / 60
-time_days = time_hr / 24
+    lu.create_logfile("spin_locking", **exp_result, loop_type="1d")
 
-print(f"time in nano seconds ~ {time_ns:.1e}")
-print(f"time in seconds ~ {tim_sec:.0f} s")
-print(f"time in minutes ~ {time_min:.0f} min")
-print(f"time in hours ~ {time_hr:.2f} hr")
-print(f"time in days ~ {time_days:.1f} days")
-
-
-current_time = datetime.now()
-time_interval = timedelta(hours=time_hr)
-future_time = current_time + time_interval
-
-print("##############################################")
-print("##############################################")
-print("Current time:", current_time.strftime("%Y-%m-%d %H:%M:%S"))
-print("Time of finish:", future_time.strftime("%Y-%m-%d %H:%M:%S"))
+    lu.get_log_name()

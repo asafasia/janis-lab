@@ -1,16 +1,14 @@
-from experiments_objects.qubit_spectroscopy import Qubit_Spec, T1_spectropcpy
-
-from qm.qua import *
+from experiments_objects.qubit_spectroscopy import T1_spectropcpy
+import labber_util as lu
 from configuration import *
 import matplotlib.pyplot as plt
-
-from saver import Saver
+from time_estimation import calculate_time
 
 if __name__ == "__main__":
     exp_args = {
         'qubit': 'qubit4',
         'n_avg': 500,
-        'N': 200,
+        'N': 100,
         'span': 5 * u.MHz,
         'state_discrimination': True,
         'pulse_type': 'lorentzian',
@@ -21,8 +19,10 @@ if __name__ == "__main__":
         'pulse_amplitude': 0.1
     }
 
-    na = 40
+    na = 10
     amplitudes = np.linspace(0.00, exp_args['pulse_amplitude'], na)
+
+    calculate_time(exp_args['n_avg'], exp_args['N'], na)
 
     states = []
     for i, a in enumerate(amplitudes):
@@ -38,6 +38,7 @@ if __name__ == "__main__":
     amplitudes = amp_V_to_Hz(amplitudes)
     # %%
     import numpy as np
+
     t1 = qubit_args['T1']
     t2 = qubit_args['T2']
 
@@ -63,15 +64,34 @@ if __name__ == "__main__":
     plt.plot(qubit_spec.detunings / 1e6, states[-1])
     plt.show()
 
-    data = {
-        'states': states.tolist()
-    }
-    sweep = {
-        'detunings': qubit_spec.detunings.tolist(),
-        'amplitudes': amplitudes.tolist(),
-    }
+    # data = {
+    #     'states': states.tolist()
+    # }
+    # sweep = {
+    #     'detunings': qubit_spec.detunings.tolist(),
+    #     'amplitudes': amplitudes.tolist(),
+    # }
+    #
+    # saver = Saver()
+    #
+    # saver.save('T1-limited-spectroscopy-vs-amplitude', data, sweep, exp_args, args)
+    # print('Data saved')
 
-    saver = Saver()
+    meta_data = {}
 
-    saver.save('T1-limited-spectroscopy-vs-amplitude', data, sweep, exp_args, args)
-    print('Data saved')
+    # add tags and user
+    meta_data["tags"] = ["Nadav-Lab", "spin-locking", "overnight"]
+    meta_data["user"] = "Asaf"
+    meta_data["exp_args"] = exp_args
+    meta_data["args"] = args
+
+    # arrange data in a form that is more suitable for labber (separate sweep parameters from measured ones, include units
+    # etc.)
+    measured_data = dict(states=states)
+    sweep_parameters = dict(detuning=qubit_spec.detunings, amplitudes=amplitudes)
+    units = dict(detuning="Hz", amplitudes="MHz")
+
+    exp_result = dict(measured_data=measured_data, sweep_parameters=sweep_parameters, units=units, meta_data=meta_data)
+
+    # create logfile
+    lu.create_logfile("T1-qubit-spectroscopy", **exp_result, loop_type="2d")

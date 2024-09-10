@@ -12,6 +12,7 @@ from qualang_tools.results import progress_counter, fetching_tool
 from qualang_tools.loops import from_array
 import matplotlib.pyplot as plt
 from qualang_tools.bakery import baking
+import labber_util as lu
 
 
 class Qubit_Spec:
@@ -131,20 +132,34 @@ class Qubit_Spec:
         modify_json(self.qubit, 'qubit', 'qubit_freq', qubit_LO - max_freq)
 
     def save(self):
-        saver = Saver()
-        measured_data = {
-            'I': self.I.tolist(),
-            'Q': self.Q.tolist(),
-            'state': self.state.tolist(),
-        }
-        sweep = {
-            'detunings': self.detunings.tolist(),
-            'frequencies': self.frequencies.tolist(),
-        }
-        metadata = {
-            'n_avg': self.n_avg,
-        }
-        saver.save('T1_limit_spectroscopy', measured_data, sweep, metadata, args)
+        # saver = Saver()
+        # measured_data = {
+        #     'I': self.I.tolist(),
+        #     'Q': self.Q.tolist(),
+        #     'state': self.state.tolist(),
+        # }
+        # sweep = {
+        #     'detunings': self.detunings.tolist(),
+        #     'frequencies': self.frequencies.tolist(),
+        # }
+        # metadata = {
+        #     'n_avg': self.n_avg,
+        # }
+        # saver.save('T1_limit_spectroscopy', measured_data, sweep, metadata, args)
+        meta_data = {}
+        meta_data["args"] = args
+        meta_data["user"] = "Asaf"
+        measured_data = dict(states=self.state)
+        sweep_parameters = dict(rabi_amp=self.frequencies)
+        units = dict(rabi_amp="Hz", states='a.u.')
+
+        exp_result = dict(
+            measured_data=measured_data,
+            sweep_parameters=sweep_parameters,
+            units=units,
+            meta_data=meta_data
+        )
+        lu.create_logfile("qubit-spectroscopy", **exp_result, loop_type="1d")
 
 
 class T1_spectropcpy:

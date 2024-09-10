@@ -5,12 +5,13 @@ reload(configuration)
 from configuration import *
 import matplotlib.pyplot as plt
 from experiments_objects.qubit_spectroscopy import Qubit_Spec
+import labber_util as lu
 
 if __name__ == "__main__":
     args = {
         'qubit': 'qubit4',
         'n_avg': 1000,
-        'N': 300,
+        'N': 100,
         'span': 0.5 * u.MHz,
         'state_discrimination': True,
         'pulse_amplitude': 0.03,

@@ -28,6 +28,7 @@ from qualang_tools.results import progress_counter, fetching_tool
 from qualang_tools.plot import interrupt_on_close
 from qualang_tools.loops import from_array
 import matplotlib.pyplot as plt
+import labber_util as lu
 
 ###################
 # The QUA program #
@@ -123,8 +124,8 @@ else:
 
 
     rabi_amp = qubit_args['pi_pulse_amplitude']
-    args = curve_fit(cos_fit, x, y, p0=[max(y) / 2 - min(y) / 2, rabi_amp * 2, np.pi, np.mean(y)])[0]
-    plt.plot(x * 1e3, cos_fit(x, *args), 'r-', label=f'fit rabi amp = {args[1] / 2:.5f} V')
+    fit_args = curve_fit(cos_fit, x, y, p0=[max(y) / 2 - min(y) / 2, rabi_amp * 2, np.pi, np.mean(y)])[0]
+    plt.plot(x * 1e3, cos_fit(x, *fit_args), 'r-', label=f'fit rabi amp = {fit_args[1] / 2:.5f} V')
 
     plt.suptitle("Power Rabi")
     plt.xlabel("Rabi amplitude (mV)")
@@ -134,12 +135,28 @@ else:
 
     plt.show()
     plt.ylim([0, 1.2])
-    from saver import Saver
+    # from saver import Saver
 
-    data = {'x': x.tolist(), 'I': I.tolist(), 'Q': Q.tolist()}
-    # metadata = {'n_avg': n_avg, 'num_pis': num_pis, 'args': args}
+    # data = {'x': x.tolist(), 'I': I.tolist(), 'Q': Q.tolist()}
+    # # metadata = {'n_avg': n_avg, 'num_pis': num_pis, 'args': args}
+    #
+    # metadata = {}
+    # # Save the data and metadata
+    # s1 = Saver()
+    # # s1.save("rabi_experiment", data, metadata)
 
-    metadata = {}
-    # Save the data and metadata
-    s1 = Saver()
-    # s1.save("rabi_experiment", data, metadata)
+    # %%
+
+    # add tags and user
+    meta_data = {}
+
+    meta_data["user"] = "Asaf"
+    meta_data["n_avg"] = n_avg
+    meta_data["args"] = args
+
+    measured_data = dict(states=state)
+    sweep_parameters = dict(rabi_amp=x)
+    units = dict(rabi_amp="V", states='a.u.')
+
+    exp_result = dict(measured_data=measured_data, sweep_parameters=sweep_parameters, units=units, meta_data=meta_data)
+    lu.create_logfile("power-rabi", **exp_result, loop_type="1d")

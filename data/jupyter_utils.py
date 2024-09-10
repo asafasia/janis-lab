@@ -1,6 +1,10 @@
 import os
 import json
 
+import numpy as np
+from matplotlib import pyplot as plt
+
+
 def load_json_file(file_path):
     """Load a JSON file and return its content."""
     with open(file_path, 'r') as file:
@@ -53,10 +57,22 @@ def create_data_dict(base_dir):
     return data_dict
 
 
+def plotter(data_dictionary, date, experiment, number):
+    data = data_dictionary[date][experiment][number]['data']
+    sweep = data_dictionary[date][experiment][number]['sweep']
+
+    data_keys = data.keys()
+    sweep_keys = sweep.keys()
+
+    data_vec = data[data_keys[-1]]
+    sweep_vec = sweep[sweep_keys[-1]]
+
+    print(data_vec)
+    print(sweep_vec)
+
+
 # Define the base directory
 base_dir = 'C:/Users/owner/Documents/GitHub/janis-lab/data'
 
 # Create the dictionary
 data_dictionary = create_data_dict(base_dir)
-
-
