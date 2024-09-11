@@ -1,12 +1,15 @@
 import numpy as np
 from qutip import *
-from configuration import *
+from experiment_utils.configuration import *
 import experiments_objects.qubit_spectroscopy as qubit_spectroscopy
 from datetime import datetime, timedelta
 
 
-def calculate_time(n_avg, sweep_points_1, sweep_points_2):
-    time_ns = n_avg * sweep_points_1 * sweep_points_2 * thermalization_time * 1.1
+def calculate_time(n_avg, sweep_points_1, sweep_points_2=1, sweep_points_3=1, pulse_len=None):
+    if pulse_len is None:
+        time_ns = n_avg * sweep_points_1 * sweep_points_2 * sweep_points_3 * thermalization_time * 1.1
+    else:
+        time_ns = n_avg * sweep_points_1 * sweep_points_2 * sweep_points_3 * pulse_len * 1.1
     tim_sec = time_ns * 1e-9
     time_min = tim_sec / 60
     time_hr = time_min / 60
@@ -29,7 +32,7 @@ def calculate_time(n_avg, sweep_points_1, sweep_points_2):
 
 
 if __name__ == "__main__":
-    n_avg = 2500
-    sweep_points_1 = 100
-    sweep_points_2 = 100
+    n_avg = 1500
+    sweep_points_1 = 200
+    sweep_points_2 = 200
     calculate_time(n_avg, sweep_points_1, sweep_points_2)

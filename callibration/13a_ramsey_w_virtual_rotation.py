@@ -6,7 +6,7 @@ from qm.qua import *
 from qm import QuantumMachinesManager
 from qm import SimulationConfig
 from scipy.optimize import curve_fit
-from change_args import modify_json
+from experiment_utils.change_args import modify_json
 from configuration import *
 from qualang_tools.results import progress_counter, fetching_tool
 from qualang_tools.loops import from_array

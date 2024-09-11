@@ -1,11 +1,9 @@
 import json
 from qualang_tools.units import unit
-import numpy as np
+from experiment_utils.pulses import *
 
-from pulses import *
-
-args_path = 'C:/Users/owner/Documents/GitHub/janis-lab/args.json'
-optimal_weights_path = 'C:/Users/owner/Documents/GitHub/janis-lab/optimal_weights.npz'
+args_path = 'C:/Users/owner/Documents/GitHub/janis-lab/experiment_utils/args.json'
+optimal_weights_path = 'C:/Users/owner/Documents/GitHub/janis-lab/experiment_utils/optimal_weights.npz'
 
 
 def IQ_imbalance(g, phi):
@@ -83,9 +81,6 @@ ringdown_length = 0
 
 def amp_V_to_Hz(amp):
     return amp / pi_pulse_amplitude / (2 * pi_pulse_length * 1e-9) / 1e6
-
-
-print(amp_V_to_Hz(0.04467))
 
 
 

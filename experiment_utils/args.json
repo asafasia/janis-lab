@@ -16,7 +16,7 @@
                 1.0058827732545965
             ],
             "qubit_LO": 4500000000.0,
-            "qubit_freq": 4381352768.0,
+            "qubit_freq": 4381344768.0,
             "pi_pulse_length": 40,
             "pi_pulse_amplitude": 0.04475028,
             "saturation_length": 40000,
@@ -26,7 +26,7 @@
             "qubit_anharmonicity": -200000000.0,
             "T1": 31000.0,
             "T2": 9570,
-            "thermalization_time": 220000
+            "thermalization_time": 2200
         },
         "resonator": {
             "IQ_input": {
@@ -49,16 +49,16 @@
             "readout_pulse_amplitude": 0.04,
             "time_of_flight": 624,
             "smearing": 124,
-            "rotation_angle": 342.76836347944635,
-            "threshold": -0.01567372184149654,
+            "rotation_angle": 349.0598914213647,
+            "threshold": -0.01546679906221377,
             "fidelity_matrix": [
                 [
-                    0.6439666666666667,
-                    0.3560333333333333
+                    0.57682,
+                    0.42318
                 ],
                 [
-                    0.25666666666666665,
-                    0.7433333333333333
+                    0.2672,
+                    0.7328
                 ]
             ]
         },

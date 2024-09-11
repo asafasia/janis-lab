@@ -15,7 +15,7 @@ Before proceeding to the next node, take the following steps:
 from qm import QuantumMachinesManager
 from qm.qua import *
 
-from change_args import modify_json
+from experiment_utils.change_args import modify_json
 from configuration import *
 import numpy as np
 import matplotlib.pyplot as plt

@@ -1,6 +1,8 @@
 import json
 import sys
 
+from experiment_utils.configuration import args_path
+
 
 def modify_json(qubit, element, key_to_change, new_value):
     """Modify a specific key in a JSON file and save the changes.
@@ -12,7 +14,7 @@ def modify_json(qubit, element, key_to_change, new_value):
         new_value (any): New value to assign to the specified key.
     """
 
-    file_path = 'C:/Users/owner/Documents/GitHub/janis-lab/args.json'
+    file_path = args_path
 
     with open(file_path, 'r') as file:
         data = json.load(file)

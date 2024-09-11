@@ -22,7 +22,7 @@ from qm import SimulationConfig
 from qm import QuantumMachinesManager
 from qualang_tools.results import fetching_tool, progress_counter
 
-from change_args import modify_json
+from experiment_utils.change_args import modify_json
 from configuration import *
 from qualang_tools.analysis.discriminator import two_state_discriminator
 

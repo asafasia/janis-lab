@@ -1,34 +1,12 @@
-"""
-        POWER RABI
-The sequence consists in playing the qubit pulse (x180 or square_pi or else) and measuring the state of the resonator
-for different qubit pulse amplitudes.
-The experimental results are then analyzed to find the qubit pulse amplitude for the chosen duration.
-
-Prerequisites:
-    - Having found the resonance frequency of the resonator coupled to the qubit under study (resonator_spectroscopy).
-    - Having calibrated the IQ mixer connected to the qubit drive line (external mixer or Octave port)
-    - Having found the rough qubit frequency and pi pulse duration (rabi_chevron_duration or time_rabi).
-    - Set the qubit frequency and desired pi pulse duration (x180_len) in the configuration.
-
-Next steps before going to the next node:
-    - Update the qubit pulse amplitude (x180_amp) in the configuration.
-"""
-from importlib import reload
-
 from scipy.optimize import curve_fit
-
-import configuration
-
-reload(configuration)
 from qm.qua import *
 from qm import QuantumMachinesManager
 from qm import SimulationConfig
-from configuration import *
+from experiment_utils.configuration import *
 from qualang_tools.results import progress_counter, fetching_tool
-from qualang_tools.plot import interrupt_on_close
 from qualang_tools.loops import from_array
 import matplotlib.pyplot as plt
-import labber_util as lu
+import experiment_utils.labber_util as lu
 
 ###################
 # The QUA program #
@@ -124,7 +102,7 @@ else:
 
 
     rabi_amp = qubit_args['pi_pulse_amplitude']
-    fit_args = curve_fit(cos_fit, x, y, p0=[max(y) / 2 - min(y) / 2, rabi_amp * 2, np.pi, np.mean(y)])[0]
+    fit_args = curve_fit(cos_fit, x, y, p0=[max(y) / 2 - min(y) / 2, rabi_amp * 2, np.mean(y)])[0]
     plt.plot(x * 1e3, cos_fit(x, *fit_args), 'r-', label=f'fit rabi amp = {fit_args[1] / 2:.5f} V')
 
     plt.suptitle("Power Rabi")
@@ -135,15 +113,7 @@ else:
 
     plt.show()
     plt.ylim([0, 1.2])
-    # from saver import Saver
 
-    # data = {'x': x.tolist(), 'I': I.tolist(), 'Q': Q.tolist()}
-    # # metadata = {'n_avg': n_avg, 'num_pis': num_pis, 'args': args}
-    #
-    # metadata = {}
-    # # Save the data and metadata
-    # s1 = Saver()
-    # # s1.save("rabi_experiment", data, metadata)
 
     # %%
 
@@ -156,7 +126,7 @@ else:
 
     measured_data = dict(states=state)
     sweep_parameters = dict(rabi_amp=x)
-    units = dict(rabi_amp="V", states='a.u.')
+    units = dict(rabi_amp="V")
 
     exp_result = dict(measured_data=measured_data, sweep_parameters=sweep_parameters, units=units, meta_data=meta_data)
     lu.create_logfile("power-rabi", **exp_result, loop_type="1d")

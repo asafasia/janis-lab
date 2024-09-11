@@ -4,9 +4,9 @@ from matplotlib import pyplot as plt
 
 def generate_eco_pulse(amplitude=0.01, length=1000):
     ts = np.linspace(-1, 1, length)
-    # vec = (2 * np.heaviside(ts, 0) - 1) * amplitude
+    vec = (2 * np.heaviside(ts, 0) - 1) * amplitude
 
-    vec = -np.sin(10 * np.pi * ts) * amplitude
+    # vec = -np.sin(10 * np.pi * ts) * amplitude
 
     return vec.tolist()
 
@@ -25,7 +25,6 @@ def generate_lorentzian_pulse(amplitude=0.01, length=1000, cutoff=0.1, n=1 / 2):
 def generate_half_lorentzian_pulse(amplitude=0.01, length=1000, cutoff=0.1, n=1 / 2):
     vec = np.array(generate_lorentzian_pulse(amplitude=amplitude, length=length, cutoff=cutoff, n=n))
     half = generate_eco_pulse(amplitude=1, length=length)
-    # half = -np.sin(np.pi * ts / 1)
     return (half * vec).tolist()
 
 
@@ -36,9 +35,19 @@ if __name__ == "__main__":
     n = 1 / 4
 
     eco_pulse_samples = generate_eco_pulse(amplitude=amplitude, length=length)
-    lorentzian_pulse_samples = generate_lorentzian_pulse(amplitude=amplitude, length=length, cutoff=cutoff, n=n)
-    lorentzian_half_pulse_samples = generate_half_lorentzian_pulse(amplitude=amplitude, length=length, cutoff=cutoff,
-                                                                   n=n)
+    lorentzian_pulse_samples = generate_lorentzian_pulse(
+        amplitude=amplitude,
+        length=length,
+        cutoff=cutoff,
+        n=n
+
+    )
+    lorentzian_half_pulse_samples = generate_half_lorentzian_pulse(
+        amplitude=amplitude,
+        length=length,
+        cutoff=cutoff,
+        n=n
+    )
     plt.plot(eco_pulse_samples)
     plt.plot(lorentzian_pulse_samples)
     plt.plot(lorentzian_half_pulse_samples)

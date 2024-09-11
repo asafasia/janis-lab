@@ -1,7 +1,6 @@
 from matplotlib import pyplot as plt
 from time import sleep
 
-from change_args import modify_json
 from configuration import *
 from instruments_py27.spectrum_analyzer import N9010A_SA
 from qm import QuantumMachinesManager

@@ -1,17 +1,11 @@
 from importlib import reload
 
-import numpy as np
-
 import configuration
-from saver import Saver
 
 reload(configuration)
-from change_args import modify_json
 from qm.qua import *
 from qm import QuantumMachinesManager
 from qm import SimulationConfig
-from qualang_tools.plot import interrupt_on_close
-from change_args import modify_json
 from configuration import *
 from qualang_tools.results import progress_counter, fetching_tool
 from qualang_tools.loops import from_array

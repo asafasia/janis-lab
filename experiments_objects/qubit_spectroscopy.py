@@ -1,18 +1,17 @@
-from importlib import reload
 from scipy.optimize import curve_fit
-import configuration
-from saver import Saver
+# import configuration
+from experiment_utils.saver import Saver
 
-reload(configuration)
+# reload(configuration)
 from qm.qua import *
 from qm import QuantumMachinesManager, SimulationConfig
-from change_args import modify_json
-from configuration import *
+from experiment_utils.change_args import modify_json
+from experiment_utils.configuration import *
 from qualang_tools.results import progress_counter, fetching_tool
 from qualang_tools.loops import from_array
 import matplotlib.pyplot as plt
 from qualang_tools.bakery import baking
-import labber_util as lu
+import experiment_utils.labber_util as lu
 
 
 class Qubit_Spec:
@@ -76,6 +75,8 @@ class Qubit_Spec:
         self.experiment = qubit_spec
 
     def execute(self):
+        from experiment_utils.time_estimation import calculate_time
+        calculate_time(self.n_avg, self.N, 1)
         qm = self.qmm.open_qm(config)
         job = qm.execute(self.experiment)
         results = fetching_tool(job, data_list=["I", "Q", "state", "iteration"], mode="live")
@@ -95,10 +96,10 @@ class Qubit_Spec:
         t2 = qubit_args['T2']
         plt.plot(self.detunings / 1e6, self.state)
 
-        def lorentzian(x, a, b, c, d):
-            return a / (1 + ((x - b) / c) ** 2) + d
+        try:
+            def lorentzian(x, a, b, c, d):
+                return a / (1 + ((x - b) / c) ** 2) + d
 
-        if with_fit:
             args = curve_fit(lorentzian, self.detunings, self.state, p0=[0.5, 0.5, self.span / 5, 0])
             a = args[0][0]
             b = args[0][1]
@@ -106,16 +107,16 @@ class Qubit_Spec:
             d = args[0][3]
             plt.plot(self.detunings / 1e6, lorentzian(self.detunings, *args[0]), label='fit')
             max_detuning = args[0][1]
-            plt.axhline(y=a / 2 + d, color='g', linestyle='--')
+            # plt.axhline(y=a / 2 + d, color='g', linestyle='--')
 
-        else:
-
+        except:
+            print("fit failed")
             max_detuning = self.detunings[np.argmax(self.state)]
             print("Max detuning = ", max_detuning / 1e6, "MHz")
 
         self.qubit_max_freq = qubit_freq - max_detuning
 
-        plt.axvline(max_detuning / 1e6, color='r', linestyle='--', label='pick')
+        plt.axvline(max_detuning / 1e6, color='r', linestyle='--', label='max')
 
         if self.span < 0.8 * u.MHz:
             plt.axvline(0, color='k', linestyle='--')
@@ -150,7 +151,7 @@ class Qubit_Spec:
         meta_data["args"] = args
         meta_data["user"] = "Asaf"
         measured_data = dict(states=self.state)
-        sweep_parameters = dict(rabi_amp=self.frequencies)
+        sweep_parameters = dict(rabi_amp=self.detunings)
         units = dict(rabi_amp="Hz", states='a.u.')
 
         exp_result = dict(

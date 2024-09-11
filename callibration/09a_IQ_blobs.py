@@ -1,20 +1,17 @@
-from macros import readout_macro
-
-from matplotlib import pyplot as plt
+from experiment_utils.macros import readout_macro
 from qm.qua import *
 from qm import SimulationConfig
 from qm import QuantumMachinesManager
 from qualang_tools.results import fetching_tool, progress_counter
-
-from change_args import modify_json
-from configuration import *
+from experiment_utils.change_args import modify_json
+from experiment_utils.configuration import *
 from qualang_tools.analysis.discriminator import two_state_discriminator
 
 ###################
 # The QUA program #
 ###################
 
-n_runs = 30000  # Number of runs
+n_runs = 100000  # Number of runs
 
 with program() as IQ_blobs:
     n = declare(int)
