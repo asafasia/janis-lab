@@ -2,19 +2,20 @@ from qm.qua import *
 from qm import QuantumMachinesManager
 from qm import SimulationConfig
 from scipy.optimize import curve_fit
-from configuration import *
+from experiment_utils.configuration import *
 from qualang_tools.results import progress_counter, fetching_tool
 from qualang_tools.loops import from_array, get_equivalent_log_array
 import matplotlib.pyplot as plt
+import experiment_utils.labber_util as lu
 
 ###################
 # The QUA program #
 ###################
 state_discrimination = True
-n_avg = 1000
+n_avg = 2000
 N = 100
 tau_min = 4
-tau_max = 134e3
+tau_max = 150e3
 d_tau = tau_max // N // 4 * 4
 taus = np.arange(tau_min, tau_max + 0.1, d_tau)  # Linear sweep
 
@@ -88,10 +89,7 @@ else:
         R = np.abs(S)
 
     # %%
-    if state_discrimination:
-        y = state
-    else:
-        y = I
+    y = state_measurement_stretch(fid_matrix, state)
     plt.plot(taus / 1e3, y, "o", label='data')
 
 
@@ -109,3 +107,20 @@ else:
     plt.ylabel("I quadrature [V]")
     plt.ylabel("I quadrature [V]")
     plt.show()
+
+    # %%
+    import experiment_utils.labber_util as lu
+
+    # add tags and user
+    meta_data = {}
+
+    meta_data["user"] = "Asaf"
+    meta_data["n_avg"] = n_avg
+    meta_data["args"] = args
+
+    measured_data = dict(states=y)
+    sweep_parameters = dict(delay=taus/1e9)
+    units = dict(delay="s")
+
+    exp_result = dict(measured_data=measured_data, sweep_parameters=sweep_parameters, units=units, meta_data=meta_data)
+    lu.create_logfile("T1", **exp_result, loop_type="1d")

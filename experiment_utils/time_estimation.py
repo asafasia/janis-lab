@@ -32,7 +32,7 @@ def calculate_time(n_avg, sweep_points_1, sweep_points_2=1, sweep_points_3=1, pu
 
 
 if __name__ == "__main__":
-    n_avg = 1500
-    sweep_points_1 = 200
-    sweep_points_2 = 200
+    n_avg = 3000
+    sweep_points_1 = 150
+    sweep_points_2 = 100
     calculate_time(n_avg, sweep_points_1, sweep_points_2)

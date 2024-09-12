@@ -1,4 +1,6 @@
 from scipy.ndimage import gaussian_filter1d
+
+from experiment_utils.MHz_to_Volt import amp_MHz_to_Volt
 from experiments_objects.qubit_spectroscopy import T1_spectropcpy
 from experiment_utils.configuration import *
 import matplotlib.pyplot as plt
@@ -7,16 +9,16 @@ import experiment_utils.labber_util as lu
 if __name__ == "__main__":
     exp_args = {
         'qubit': 'qubit4',
-        'n_avg': 1500,
-        'N': 100,
-        'span': 0.20 * u.MHz,
+        'n_avg': 3000,
+        'N': 200,
+        'span': 0.2 * u.MHz,
         'state_discrimination': True,
-        'pulse_type': 'lorentzian',
-        'cutoff': 0.0005,
+        'pulse_type': 'square',
+        'cutoff': 0.001,
         'eco': False,
-        'n': 1 / 4,
-        'pulse_length': 20 * u.us,
-        'pulse_amplitude': 0.051
+        'n': 1 / 2,
+        'pulse_length': 40 * u.us,
+        'pulse_amplitude': amp_MHz_to_Volt(0.01)
     }
 
     qubit_spec = T1_spectropcpy(**exp_args)
@@ -33,7 +35,7 @@ if __name__ == "__main__":
     y_smooth = gaussian_filter1d(state, sigma=sigma)
 
     plt.plot(qubit_spec.detunings / 1e6, y_smooth)
-    if exp_args['span'] < 3 * u.MHz:
+    if exp_args['span'] < 0.1 * u.MHz:
         plt.axvline(1 / t2 * 1e3 / 2 / np.pi, color='b', linestyle='--',
                     label=f'T2 limit ~ {1 / t2 / 2 / np.pi * 1e3:0.2f} MHz')
         plt.axvline(-1 / t2 * 1e3 / 2 / np.pi, color='b', linestyle='--')
@@ -42,7 +44,7 @@ if __name__ == "__main__":
 
     plt.xlabel("Detuning (MHz)")
     plt.ylabel("State")
-    plt.ylim([0, 1])
+    # plt.ylim([0, 1])
     plt.legend()
     plt.show()
 
