@@ -9,16 +9,16 @@ import numpy as np
 if __name__ == "__main__":
     exp_args = {
         'qubit': 'qubit4',
-        'n_avg': 8000,
-        'N': 200,
-        'span': 0.1 * u.MHz,
+        'n_avg': 10000,
+        'N': 100,
+        'span': 20 * u.MHz,
         'state_discrimination': True,
-        'pulse_type': 'square',
-        'cutoff': 0.005,
-        'eco': False,
+        'pulse_type': 'lorentzian',
+        'cutoff': 0.0007,
+        'eco': True,
         'n': 1 / 2,
         'pulse_length': 60 * u.us,
-        'pulse_amplitude': amp_MHz_to_Volt(0.01)  # ~ MHz
+        'pulse_amplitude': amp_MHz_to_Volt(6)  # ~ MHz
     }
     exp_name = 'T1-qubit-spectroscopy'
     exp_name += f'-{exp_args["pulse_type"]}'
@@ -43,9 +43,8 @@ if __name__ == "__main__":
         return amplitudes, qubit_spec.detunings, states
 
 
-    # %%
     na = 10
-    amplitudes = np.linspace(0.00, exp_args['pulse_amplitude'], na)
+    amplitudes = np.linspace(amp_MHz_to_Volt(0.007), exp_args['pulse_amplitude'], na)
     calculate_time(exp_args['n_avg'], exp_args['N'], na)
     amplitudes, detunings, states = run_experiment_for_amplitudes(amplitudes)
 
@@ -54,12 +53,13 @@ if __name__ == "__main__":
 
     states = np.array(states)
 
+    # %%
     plt.title(
         f'{exp_args["pulse_type"]} , eco = {exp_args["eco"]} \n pulse length = {exp_args["pulse_length"] / 1e3:.3f} us ,'
         f' pulse amplitude = {exp_args["pulse_amplitude"] * 1e3:3f} mV ({amplitudes[-1]:.3f} MHz)'
         f'\n n = {exp_args["n"]} , cutoff = {exp_args["cutoff"]}')
 
-    if exp_args['span'] < 0.2 * u.MHz:
+    if exp_args['span'] < 1 * u.MHz:
         plt.axvline(1 / t2 * 1e3 / 2 / np.pi, color='b', linestyle='--', label='T2 limit')
         plt.axvline(-1 / t2 * 1e3 / 2 / np.pi, color='b', linestyle='--')
         plt.axvline(1 / t1 * 1e3 / 2 / np.pi, color='k', linestyle='--', label='T1 limit')

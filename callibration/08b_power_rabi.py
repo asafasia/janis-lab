@@ -86,12 +86,7 @@ else:
 
     # %%
     x = amplitudes * pi_pulse_amplitude * num_pis
-    if state_discrimination:
-        y = state
-
-    else:
-        y = I
-
+    y = state
     fid_matrix = resonator_args['fidelity_matrix']
     y = state_measurement_stretch(fid_matrix, y)
     plt.plot(x * 1e3, y, '.')
@@ -102,7 +97,7 @@ else:
 
 
     rabi_amp = qubit_args['pi_pulse_amplitude']
-    fit_args = curve_fit(cos_fit, x, y, p0=[max(y) / 2 - min(y) / 2, rabi_amp * 2, np.mean(y)])[0]
+    fit_args = curve_fit(cos_fit, x, y, p0=[max(y) / 2 - min(y) / 2, rabi_amp * 2, np.mean(y),0.5])[0]
     plt.plot(x * 1e3, cos_fit(x, *fit_args), 'r-', label=f'fit rabi amp = {fit_args[1] / 2:.5f} V')
 
     plt.suptitle("Power Rabi")

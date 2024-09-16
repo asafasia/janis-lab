@@ -19,7 +19,7 @@ Next steps before going to the next node:
 from qm.qua import *
 from qm import QuantumMachinesManager
 from qm import SimulationConfig
-from configuration import *
+from experiment_utils.configuration import *
 from qualang_tools.results import progress_counter, fetching_tool
 from qualang_tools.plot import interrupt_on_close
 from qualang_tools.loops import from_array
@@ -33,7 +33,7 @@ n_avg = 300  # The number of averages
 # Pulse amplitude sweep (as a pre-factor of the qubit pulse amplitude) - must be within [-2; 2)
 a_min = 0.9
 a_max = 1.1
-n_a = 51
+n_a = 101
 amplitudes = np.linspace(a_min, a_max, n_a)
 # Number of applied Rabi pulses sweep
 max_nb_of_pulses = 80  # Maximum number of qubit pulses
@@ -136,4 +136,4 @@ else:
     plt.ylabel("Sum along the # of Rabi pulses")
     plt.pause(0.1)
     plt.tight_layout()
-    print(f"Optimal x180_amp = {amplitudes[np.argmin(np.sum(I, axis=0))] * pi_pulse_amplitude:.8f} V")
+    print(f"Optimal x180_amp = {amplitudes[np.argmin(np.sum(I, axis=0))] * pi_pulse_amplitude:.12f} V")

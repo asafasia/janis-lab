@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 ###################
 n_avg = 5000
 tau_min = 4
-tau_max = 60_000 // 4
+tau_max = 40_000 // 4
 N = 200
 d_tau = tau_max // N // 4 * 4
 
@@ -106,9 +106,6 @@ else:
     plt.ylabel("I quadrature [V]")
     plt.show()
 
-
-
-
     # %%
     import experiment_utils.labber_util as lu
 
@@ -120,13 +117,13 @@ else:
     meta_data["args"] = args
 
     measured_data = dict(states=y)
-    sweep_parameters = dict(delay=taus / 1e9)
+    sweep_parameters = dict(delay=taus * 4 / 1e9)
     units = dict(delay="s")
 
     exp_result = dict(measured_data=measured_data, sweep_parameters=sweep_parameters, units=units, meta_data=meta_data)
     lu.create_logfile("T2-ramsey", **exp_result, loop_type="1d")
 
-# %%
+    # %%
     response = input("Do you want to update qubit freq? (yes/no): ").strip().lower()
 
     new_qubit_freq = int(qubit_freq - qubit_detuning)
