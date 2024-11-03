@@ -3,7 +3,7 @@ from time import sleep
 import time
 from qm import QuantumMachinesManager
 from instruments_py27.spectrum_analyzer import N9010A_SA
-from configuration import *
+from experiment_utils.configuration import *
 from qm.qua import *
 from experiment_utils.change_args import modify_json
 from callibration.get_traces_spectrum import plot_traces
@@ -136,7 +136,7 @@ with program() as prog:
 
 if __name__ == "__main__":
 
-    qubit = 'qubit3'
+    qubit = 'qubit4'
     average = False
     I0 = 0
     Q0 = 0

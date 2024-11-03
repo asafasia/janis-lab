@@ -14,18 +14,25 @@ from qualang_tools.loops import from_array
 import matplotlib.pyplot as plt
 # %%
 if __name__ == "__main__":
-    n_avg = 1000  # The number of averages
+    n_avg = 500  # The number of averages
     N = 10
     # Pulse duration sweep (in clock cycles = 4ns) - must be larger than 4 clock cycles
-    t_min = 0 // 4
-    t_max = 300 // 4
+    t_min = 16 // 4
+    t_max = 800 // 4
     dt = (t_max - t_min) // N // 4
     durations = np.arange(t_min, t_max, dt)
     amplitude = 0.03
+    Omega_max = 0.5
+    
+    omegas = np.linspace(0,Omega_max,50)
     
     
     qmm = QuantumMachinesManager(host=qm_host, port=qm_port)  # creates a manager instance
     qm = qmm.open_qm(config)  # opens a quantum machine with the specified configuration
+
+    # with baking(config, "symmetric_r") as b:    
+    #      b.add_op("Adiabatic", "qubit", [np.zeros_like(omegas), omegas])
+    #      b.play("Adiabatic", "qubit")
     
     with program() as spin_lock:
         n = declare(int)  # QUA variable for the averaging loop
@@ -42,7 +49,12 @@ if __name__ == "__main__":
         with for_(n, 0, n < n_avg, n + 1):
             with for_(*from_array(t,durations)):
                 align("qubit", "resonator")
-                play('x90', "qubit", duration=t)
+                # with if_(t < (100//4)):
+                #     play('x90', "qubit", duration=t)
+                # with if_(t >= (100//4)):
+                #     play('x90', "qubit", duration=(50//4))
+                #     play("x90", "qubit", duration=(t - 50//4),  chirp=(500, 'Hz/nsec'))
+                play('y360', "qubit", duration=t)
                 align("qubit", "resonator")
     
                 measure(

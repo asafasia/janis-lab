@@ -2,7 +2,7 @@ from matplotlib import pyplot as plt
 import numpy as np
 from qm import QuantumMachinesManager
 from instruments_py27.spectrum_analyzer import N9010A_SA
-from configuration import *
+from experiment_utils.configuration import *
 from pprint import pprint
 from qm.qua import *
 
@@ -48,7 +48,7 @@ if __name__ == "__main__":
     qmm = QuantumMachinesManager(host=qm_host, port=qm_port)
     qm = qmm.open_qm(config)
 
-    element = "qubit"
+    element = "resonator"
 
     with program() as prog:
         with infinite_loop_():
@@ -57,7 +57,7 @@ if __name__ == "__main__":
 
     pending_job = qm.queue.add_to_start(prog)
 
-    center_freq = args['qubit3'][element][f"{element}_LO"] / 1e6,
+    center_freq = args['qubit4'][element][f"{element}_LO"] / 1e6,
     span = 1500e6,
     BW = 0.2e6,
     points = 5000

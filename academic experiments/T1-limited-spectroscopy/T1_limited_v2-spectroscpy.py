@@ -10,8 +10,8 @@ import experiment_utils.labber_util as lu
 if __name__ == "__main__":
     exp_args = {
         'qubit': 'qubit4',
-        'n_avg': 100000,
-        'N': 100,
+        'n_avg': 1000000,
+        'N': 200,
         'span': 0.1 * u.MHz,
         'state_discrimination': True,
         'pulse_type': 'lorentzian',

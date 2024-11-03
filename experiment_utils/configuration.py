@@ -2,8 +2,14 @@ import json
 from qualang_tools.units import unit
 from experiment_utils.pulses import *
 
-args_path = 'C:/Users/owner/Documents/GitHub/janis-lab/experiment_utils/args.json'
+args_path = 'C:/Users/owner/Documents/GitHub/janis-lab/experiment_utils/'
 optimal_weights_path = 'C:/Users/owner/Documents/GitHub/janis-lab/experiment_utils/optimal_weights.npz'
+
+user = 'Asaf'
+if user == 'Asaf':
+    args_path += 'args_2.json'
+elif user == 'Arel':
+    args_path += 'args.json'
 
 
 def IQ_imbalance(g, phi):
@@ -81,7 +87,6 @@ ringdown_length = 0
 
 def amp_V_to_Hz(amp):
     return amp / pi_pulse_amplitude / (2 * pi_pulse_length * 1e-9) / 1e6
-
 
 
 opt_weights = False
@@ -162,6 +167,7 @@ config = {
                 "-x90": "-x90_pulse",
                 "y90": "y90_pulse",
                 "-y90": "-y90_pulse",
+                "y360": "y360_pulse",
 
             },
         },
@@ -272,6 +278,14 @@ config = {
                 "Q": "minus_y90_Q_wf",
             },
         },
+        "y360_pulse": {
+            "operation": "control",
+            "length": pi_pulse_length,
+            "waveforms": {
+                "I": "y360_I_wf",
+                "Q": "y360_Q_wf",
+            },
+        },
 
         "readout_pulse": {
             "operation": "measurement",
@@ -307,6 +321,8 @@ config = {
         "minus_x90_Q_wf": {"type": "constant", "sample": -pi_pulse_amplitude / 2},
         "y90_I_wf": {"type": "constant", "sample": -pi_pulse_amplitude / 2},
         "y90_Q_wf": {"type": "constant", "sample": 0},
+        "y360_I_wf": {"type": "constant", "sample": pi_pulse_amplitude * 2},
+        "y360_Q_wf": {"type": "constant", "sample": 0},
         "minus_y90_I_wf": {"type": "constant", "sample": qubit_args['pi_pulse_amplitude'] / 2},
         "minus_y90_Q_wf": {"type": "constant", "sample": 0},
         "readout_wf": {"type": "constant", "sample": readout_amp},

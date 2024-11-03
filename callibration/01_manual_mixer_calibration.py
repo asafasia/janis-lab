@@ -16,7 +16,7 @@ from qm import QuantumMachinesManager
 from qm.qua import *
 
 from experiment_utils.change_args import modify_json
-from configuration import *
+from experiment_utils.configuration import *
 import numpy as np
 import matplotlib.pyplot as plt
 from time import sleep

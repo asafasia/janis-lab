@@ -3,5 +3,5 @@
   <component name="Black">
     <option name="sdkName" value="qm-project-env-conda" />
   </component>
-  <component name="ProjectRootManager" version="2" project-jdk-name="janis-lab-env" project-jdk-type="Python SDK" />
+  <component name="ProjectRootManager" version="2" project-jdk-name="qm-project-env-conda" project-jdk-type="Python SDK" />
 </project>
