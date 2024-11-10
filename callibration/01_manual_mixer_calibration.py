@@ -26,7 +26,7 @@ from instruments_py27.spectrum_analyzer import N9010A_SA
 ###################
 # The QUA program #
 ###################
-qubit = "qubit3"
+qubit = "qubit4"
 element = "qubit"
 
 if element != "resonator" and element != "qubit":
@@ -54,50 +54,12 @@ sa.setup_spectrum_analyzer(center_freq=f_LO / 1e6 + f_IF / 1e6, span=0.5e6, BW=0
 sa.set_marker_max()
 sa.setup_averaging(False, 1)
 
-# I0 = resonator_args["IQ_input"]["I"]
-# Q0 = resonator_args["IQ_input"]["Q"]
-#
-# centers = [0, 0]
-# span = 0.1
-# #
-# fig1 = plt.figure()
-# for n in range(3):
-#     print('n = ', n)
-#     offset_i = np.linspace(centers[0] - span, centers[0] + span, 11)
-#     offset_q = np.linspace(centers[1] - span, centers[1] + span, 11)
-#     lo_leakage = np.zeros((len(offset_q), len(offset_i)))
-#     for i in range(len(offset_i)):
-#         print('i = ', i)
-#         for q in range(len(offset_q)):
-#             qm.set_output_dc_offset_by_element(element, ("I", "Q"), (offset_i[i], offset_q[q]))
-#             sleep(0.05)
-#             # Write functions to extract the lo leakage from the spectrum analyzer
-#             lo_leakage[q][i] = sa.get_marker()
-#
-#     #
-#     minimum = np.argwhere(lo_leakage == np.min(lo_leakage))[0]
-#
-#     print(minimum)
-#     centers = [offset_i[minimum[0]], offset_q[minimum[1]]]
-#     print(centers)
-#     span = span / 5
-#     plt.pcolor(offset_i, offset_q, lo_leakage.transpose())
-#     plt.xlabel("I offset [V]")
-#     plt.ylabel("Q offset [V]")
-#     plt.title(f"Minimum at (I={centers[0]:.3f}, Q={centers[1]:.3f}) = {lo_leakage[minimum[0]][minimum[1]]:.1f} dBm")
-#     plt.colorbar()
-#     plt.show()
-# # plt.suptitle(f"LO leakage correction for {element}")
-#
-# print(f"For {element}, I offset is {centers[0]} and Q offset is {centers[1]}")
-
-# Automatic image cancellation
 centers = [0, 0]
 
-span = [0.3, 0.2]
-num = 11
+span = [0.4, 0.3]
+num = 12
 fig2 = plt.figure()
-for n in range(3):
+for n in range(5):
     gain = np.linspace(centers[0] - span[0], centers[0] + span[0], num)
     phase = np.linspace(centers[1] - span[1], centers[1] + span[1], num)
     image = np.zeros((len(phase), len(gain)))
@@ -124,7 +86,7 @@ for n in range(3):
     plt.title(f"Minimum at (gain={centers[0]:.3f}, phase={centers[1]:.3f}) = {image[minimum[0]][minimum[1]]:.1f} dBm")
     plt.colorbar()
     plt.show()
-plt.suptitle(f"Image cancellation for {element}")
+# plt.suptitle(f"Image cancellation for {element}")
 
 q = centers[0]
 p = centers[1]

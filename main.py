@@ -1,22 +1,13 @@
 import numpy as np
-import experiment_utils.labber_util as lu
 
-if __name__ == "__main__":
-    result_X = np.array([1, 1, 1])
-    delay_vec = np.array([1, 2, 3])
-    meta_data = {}
-    meta_data["tags"] = ["Nadav-Lab", "spin-locking", "overnight"]
-    meta_data["user"] = "Guy"
-    measured_data = dict(X=result_X)
-    sweep_parameters = dict(hold_time=delay_vec)
-    units = dict(hold_time="s", detuning="Hz")
-    exp_result = dict(measured_data=measured_data, sweep_parameters=sweep_parameters, units=units, meta_data=meta_data)
+p = np.array([[49.1, 50.9], [26.1, 73.9]]) / 100
 
-    # lu.create_logfile("spin_locking", **exp_result, loop_type="1d")
+p_inv = np.linalg.inv(p)
 
+# print(p_inv)
 
+v = np.array([0.51, 0.49])
 
-    a = lu.open_log("power-rabi")
+print(p_inv@v)
 
-
-    print(lu.get_current_Labber_path())
+print(v.T@p_inv)

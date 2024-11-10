@@ -28,6 +28,12 @@ def generate_half_lorentzian_pulse(amplitude=0.01, length=1000, cutoff=0.1, n=1 
     return (half * vec).tolist()
 
 
+
+def readout_pulse(x):
+    return
+
+
+
 if __name__ == "__main__":
     amplitude = 1
     cutoff = 0.01

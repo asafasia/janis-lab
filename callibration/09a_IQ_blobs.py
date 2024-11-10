@@ -11,7 +11,7 @@ from qualang_tools.analysis.discriminator import two_state_discriminator
 # The QUA program #
 ###################
 
-n_runs = 100000  # Number of runs
+n_runs = 50000  # Number of runs
 
 with program() as IQ_blobs:
     n = declare(int)
@@ -30,6 +30,7 @@ with program() as IQ_blobs:
         wait(thermalization_time // 4, "resonator")
         align()
         play("x180", "qubit")
+        wait(40, "qubit")
         align("qubit", "resonator")
         _, I_e, Q_e = readout_macro(threshold=None, state=None, I=I_e, Q=Q_e)
         wait(thermalization_time // 4, "resonator")
@@ -58,10 +59,7 @@ qmm = QuantumMachinesManager(host=qm_host, port=qm_port)
 simulate = False
 
 if simulate:
-    simulation_config = SimulationConfig(duration=10_000)  # In clock cycles = 4ns
-    job = qmm.simulate(config, IQ_blobs, simulation_config)
-    job.get_simulated_samples().con1.plot()
-
+    simulation_config = SimulationConfig
 else:
     qm = qmm.open_qm(config)
     job = qm.execute(IQ_blobs)

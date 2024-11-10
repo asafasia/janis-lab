@@ -25,7 +25,7 @@ Next steps before going to the next node:
 from qm.qua import *
 from qm import QuantumMachinesManager
 from qm import SimulationConfig
-from configuration import *
+from experiment_utils.configuration import *
 from qualang_tools.results import progress_counter, fetching_tool
 import matplotlib.pyplot as plt
 
@@ -97,12 +97,12 @@ def update_readout_length(new_readout_length, ringdown_length):
 ###################
 # The QUA program #
 ###################
-n_avg = 50000
+n_avg = 10000
 # readout_len = 2 * u.us
 ringdown_len = 0 * u.ns
 update_readout_length(readout_len, ringdown_len)
 # Set the sliced demod parameters
-division_length = 8  # Size of each demodulation slice in clock cycles
+division_length = 5  # Size of each demodulation slice in clock cycles
 number_of_divisions = int((readout_len + ringdown_len) / (4 * division_length))  # Number of slices
 print("Integration weights chunk-size length in clock cycles:", division_length)
 print("The readout has been sliced in the following number of divisions", number_of_divisions)

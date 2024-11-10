@@ -20,7 +20,7 @@ from qm import QuantumMachinesManager
 from qm import SimulationConfig
 
 from experiment_utils.change_args import modify_json
-from configuration import *
+from experiment_utils.configuration import *
 from qualang_tools.results import progress_counter, fetching_tool
 from qualang_tools.loops import from_array
 import matplotlib.pyplot as plt
@@ -29,12 +29,13 @@ from scipy import signal
 ###################
 # The QUA program #
 ###################
-n_avg = 500  # The number of averages
+n_avg = 1000  # The number of averages
 span = 10 * u.MHz
 f_min = resonator_freq - span / 2
 f_max = resonator_freq + span / 2
 df = 100 * u.kHz
 long_pulse = False
+simulate = True
 
 frequencies = resonator_LO - np.arange(f_min, f_max + 0.1, df)
 
@@ -62,12 +63,13 @@ with program() as resonator_spec:
                 dual_demod.full('minus_sin', 'out1', 'cos', 'out2', Q1)
             )
             wait(thermalization_time // 4, "resonator")
-            align()
             if long_pulse:
                 play("saturation", "qubit")
+                play("saturation", "qubit2")
+
             else:
                 play("x180", "qubit")
-
+            wait(100, "qubit")
             align("qubit", "resonator")
             measure(
                 "readout",
@@ -100,10 +102,9 @@ qmm = QuantumMachinesManager(host=qm_host, port=qm_port)
 #######################
 # Simulate or execute #
 #######################
-simulate = False
 
 if simulate:
-    simulation_config = SimulationConfig(duration=10_000)  # In clock cycles = 4ns
+    simulation_config = SimulationConfig(duration=10_00)  # In clock cycles = 4ns
     job = qmm.simulate(config, resonator_spec, simulation_config)
     job.get_simulated_samples().con1.plot()
 
@@ -123,7 +124,7 @@ else:
         R1_var = np.var(R1, axis=0)
         R2_var = np.var(R2, axis=0)
 
-        Var = R1_var/2 + R2_var/2
+        Var = np.sqrt(R1_var / 2 + R2_var / 2)
 
         R1 = np.mean(R1, axis=0)
         R2 = np.mean(R2, axis=0)
@@ -137,7 +138,7 @@ else:
         progress_counter(iteration, n_avg, start_time=results.get_start_time())
 
     fig = plt.figure()
-    diff = np.abs(R1 - R2)
+    diff = np.abs(R1 - R2)/Var
     res_freq = frequencies[np.argmax(diff)]
     print("Resonator  freq is: ", (resonator_LO - res_freq) / 1e6, "MHz")
     ground = R1[np.argmax(diff)]
@@ -147,9 +148,9 @@ else:
 
     plt.suptitle(
         f"Resonator spectroscopy - LO = {resonator_LO / u.GHz} GHz "
-        f"\nresonator pulse amplitude = {readout_amp} , "
+        f"\nRESONATOR : pulse amplitude = {readout_amp} , "
         f" length = {readout_len / 1e3} us"
-        f"\n qubit pulse amplitude = {res_pulse_amp}, length = {res_pulse_len / 1e3} us"
+        f"\n QUBIT : pulse amplitude = {saturation_amp}, length = {saturation_len / 1e3} us"
     )
     plt.subplot(311)
     plt.axvline(x=(resonator_LO - res_freq) / u.MHz, color='r', linestyle='--')
@@ -170,7 +171,7 @@ else:
     plt.ylabel("Phase [rad]")
     plt.legend()
     plt.subplot(313)
-    plt.ylabel("Diff [V]")
+    plt.ylabel("Diff ")
     plt.plot((resonator_LO - frequencies) / u.MHz, diff)
     plt.axvline(x=(resonator_LO - res_freq) / u.MHz, color='r', linestyle='--',
                 label=f'new freq = {(resonator_LO - res_freq) / u.MHz} MHz')
@@ -189,10 +190,5 @@ else:
         print("Okay, maybe next time.")
     else:
         print("Invalid response. Please enter 'y' or 'n'.")
-
-
-
-
-
 
 plt.show()

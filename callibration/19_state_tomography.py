@@ -10,15 +10,15 @@ Prerequisites:
     - Having calibrated the IQ blobs to perform state discrimination.
     - (optional) Having calibrated the readout (readout_frequency, amplitude, duration_optimization) for better SNR.
 """
-
+from qiskit.quantum_info import DensityMatrix
 from qm.qua import *
 from qm import QuantumMachinesManager
 from qm import SimulationConfig
 from qutip import Bloch
 
-from configuration import *
+from experiment_utils.configuration import *
 from qualang_tools.results import progress_counter, fetching_tool
-from macros import readout_macro
+from experiment_utils.macros import readout_macro
 import matplotlib.pyplot as plt
 
 
@@ -166,10 +166,10 @@ with program() as state_tomography:
     with for_(n, 0, n < n_avg, n + 1):  # QUA for_ loop for averaging
         with for_(c, 0, c <= 2, c + 1):  # QUA for_ loop for switching between projections
             # Add here whatever state you want to characterize
-            play("x90", "qubit", duration=10)
+            # play("x90", "qubit", duration=10)
             # frame_rotation_2pi(1 / 4, "qubit")
 
-            # play("y90", "qubit")
+            play("x90", "qubit")
 
             with switch_(c):
                 with case_(0):  # projection along X
@@ -257,5 +257,10 @@ else:
     # Zero order approximation
     rho = 0.5 * (I + state[0] * sigma_x + state[1] * sigma_y + state[2] * sigma_z)
     print(f"The density matrix is:\n{rho}")
+    a = DensityMatrix(rho,dims=(2))
 
+    from qiskit.visualization import plot_state_city
+
+    plot_state_city(a, title='Density Matrix')
+    plt.show()
     # plt.show()

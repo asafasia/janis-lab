@@ -12,9 +12,6 @@ I_FIG_NUM = 1
 Q_FIG_NUM = 2
 F = plt.figure(I_FIG_NUM)
 plotFigs = True
-element = 'qubit'
-
-LOFreq = args[qubit][element][f"{element}_LO"]
 
 I0 = 0
 Q0 = 0
@@ -135,27 +132,29 @@ with program() as prog:
         play("pulse", "RR2")
 
 if __name__ == "__main__":
-
+    element = 'qubit' # 'resonator'
     qubit = 'qubit4'
     average = False
-    I0 = 0
-    Q0 = 0
+    I0 = 0.0
+    Q0 = 0.0
 
     I_port = args[qubit][element]["IQ_input"]["I"]
     Q_port = args[qubit][element]["IQ_input"]["Q"]
 
+    freq = args[qubit][element][f"{element}_LO"]
+
     sa = N9010A_SA(sa_address, False)
-    sa.setup_spectrum_analyzer(center_freq=LOFreq / 1e6, span=0.5e6, BW=0.1e6, points=15)
+    sa.setup_spectrum_analyzer(center_freq=freq / 1e6, span=2e6, BW=0.1e6, points=15)
     sa.set_marker_max()
     qm = open_qm()
 
     job = qm.execute(prog)
     getWithIQ([0.0, 0.0], qm, sa)  # send a sequence in order to have a trigger before setting SA marker to max
 
-    currMin = 100.0  # minimal transmission, start with a high value
-    currRange = 0.2  # 0.98#0.80 # 2**10 #range to scan around the minima
-    minimum = -90  # Stop at this value
-    numPoints = 20  # number of points
+    currMin = 0.0  # minimal transmission, start with a high value
+    currRange = 0.5  # 0.98#0.80 # 2**10 #range to scan around the minima
+    minimum = -105  # Stop at this value
+    numPoints = 11  # number of points
     I0 = 0.0
     Q0 = 0.0
 
@@ -163,8 +162,13 @@ if __name__ == "__main__":
     while currMin > minimum and currRange >= 16. / 2 ** 16:
         minTI, I0 = findMinI(I0, Q0, currRange, numPoints, qm, sa, plotFigs)  # scan I
         currMin, Q0 = findMinQ(I0, Q0, currRange, numPoints, qm, sa, plotFigs)  # Scan Q
+
+        if I0 < -500:
+            I0 = -30
+        if Q0 < -500:
+            Q0 = -30
         print(f"Range = {currRange}, I0 = {I0}, Q0 = {Q0}, currMin = {currMin} ")
-        currRange = currRange / 2
+        currRange = currRange / 1.5
     end = time.time()
 
     print("Elapsed time is %f seconds" % (end - start))
@@ -186,7 +190,9 @@ if __name__ == "__main__":
     qm.set_output_dc_offset_by_element("RR1", "single", I0)
     qm.set_output_dc_offset_by_element("RR2", "single", Q0)
 
-    plot_traces(LOFreq / 1e6, 500e6, 0.1e6, 5005, True)
+    center_freq = args[qubit][element][f"{element}_LO"]
+
+    plot_traces(center_freq / 1e6, 500e6, 0.1e6, 5005, True)
     plt.show()
 
     response = input("Do you want to updata IQ bias? (yes/no): ").strip().lower()

@@ -29,6 +29,7 @@ def create_vectors_from_string(input_string):
 
 def plot_traces(center_freq, span, BW, points, average=False):
     sa = N9010A_SA(sa_address, False)
+    sg = None
     sa.setup_averaging(average, 10)
     sa.setup_spectrum_analyzer(center_freq=center_freq, span=span, BW=BW,
                                points=points)
@@ -52,18 +53,20 @@ if __name__ == "__main__":
 
     with program() as prog:
         with infinite_loop_():
-            play("readout", "resonator")
-            play("saturation", "qubit")
+            if element == "qubit":
+                play("saturation", "qubit")
+            else:
+                play("readout_pulse", "resonator")
+
 
     pending_job = qm.queue.add_to_start(prog)
 
-    center_freq = args['qubit4'][element][f"{element}_LO"] / 1e6,
-    span = 1500e6,
-    BW = 0.2e6,
-    points = 5000
+    center_freq = args['qubit4'][element][f"{element}_LO"] / 1e6
+    span = 500e6,
+    BW = 0.1e6,
+    points = 5001
     average = True
-
     plot_traces(center_freq, span, BW, points, average)
-    # plt.axvline(x=qubit_freq / u.MHz, color='r', linestyle='--', label='Qubit frequency')
+    # plt.axvline(x=center_freq, color='r', linestyle='--', label='Qubit frequency')
     plt.legend()
     plt.show()

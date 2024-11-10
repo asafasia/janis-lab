@@ -12,7 +12,7 @@ import experiment_utils.labber_util as lu
 # The QUA program #
 ###################
 state_discrimination = True
-n_avg = 2000
+n_avg = 500
 N = 100
 tau_min = 4
 tau_max = 150e3
@@ -90,6 +90,8 @@ else:
 
     # %%
     y = state_measurement_stretch(fid_matrix, state)
+
+    # y = state
     plt.plot(taus / 1e3, y, "o", label='data')
 
 

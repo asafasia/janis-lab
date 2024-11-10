@@ -18,7 +18,7 @@ Next steps before going to the next node:
 from qm.qua import *
 from qm import QuantumMachinesManager
 from qm import SimulationConfig
-from configuration import *
+from experiment_utils.configuration import *
 from qualang_tools.results import progress_counter, fetching_tool
 from qualang_tools.analysis import two_state_discriminator
 from qualang_tools.loops import from_array
@@ -28,7 +28,7 @@ import matplotlib.pyplot as plt
 ###################
 # The QUA program #
 ###################
-n_runs = 3000
+n_runs = 6000
 # The readout amplitude sweep (as a pre-factor of the readout amplitude) - must be within [-2; 2)
 N = 30
 a_min = 0

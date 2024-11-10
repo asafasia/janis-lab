@@ -15,7 +15,13 @@ import experiment_utils.labber_util as lu
 
 
 class Qubit_Spec:
-    def __init__(self, qubit, n_avg, N, span, state_discrimination, pulse_amplitude, pulse_length):
+    def __init__(
+            self, qubit, n_avg, N, span,
+            state_discrimination,
+            pulse_amplitude,
+            pulse_length,
+            state_measurement_stretch
+    ):
         self.qubit_max_freq = None
         self.IF_max_freq = None
         self.qubit = qubit
@@ -23,8 +29,10 @@ class Qubit_Spec:
         self.span = span
         self.N = N
         self.n_avg = n_avg
+        self.state_measurement_stretch = state_measurement_stretch
         self.frequencies = qubit_LO - np.arange(qubit_freq - self.span / 2, qubit_freq + self.span / 2,
                                                 self.span // self.N)
+        print(self.frequencies)
         self.detunings = qubit_freq - qubit_LO + self.frequencies
         self.state_discrimination = state_discrimination
         print("rabi_freq = ", saturation_amp / pi_pulse_amplitude / (2 * pi_pulse_length * 1e-9) / 1e6, "MHz")
@@ -46,8 +54,6 @@ class Qubit_Spec:
 
             with for_(n, 0, n < self.n_avg, n + 1):
                 with for_(*from_array(df, self.frequencies)):
-                    if pi_pulse:
-                        play(pi_pulse, "qubit")
                     update_frequency("qubit", df)
                     play("saturation" * amp(self.pulse_amp), "qubit")
                     wait(100, "qubit")
@@ -82,9 +88,10 @@ class Qubit_Spec:
         results = fetching_tool(job, data_list=["I", "Q", "state", "iteration"], mode="live")
         while results.is_processing():
             I, Q, state, iteration = results.fetch_all()
+
             progress_counter(iteration, self.n_avg, start_time=results.get_start_time())
 
-        if state_measurement_stretch:
+        if self.state_measurement_stretch:
             state = state_measurement_stretch(resonator_args['fidelity_matrix'], state)
 
         self.I, self.Q, self.state = I, Q, state
@@ -94,7 +101,13 @@ class Qubit_Spec:
     def plot(self, with_fit=False):
         t1 = qubit_args['T1']
         t2 = qubit_args['T2']
+
+        S = u.demod2volts(self.I + 1j * self.Q, readout_len)
+        R = np.abs(S)  # Amplitude
+
         plt.plot(self.detunings / 1e6, self.state)
+
+        # plt.plot(self.detunings / 1e6, R)
 
         try:
             def lorentzian(x, a, b, c, d):
@@ -105,6 +118,7 @@ class Qubit_Spec:
             b = args[0][1]
             c = args[0][2]
             d = args[0][3]
+
             plt.plot(self.detunings / 1e6, lorentzian(self.detunings, *args[0]), label='fit')
             max_detuning = args[0][1]
             # plt.axhline(y=a / 2 + d, color='g', linestyle='--')
@@ -115,7 +129,10 @@ class Qubit_Spec:
             print("Max detuning = ", max_detuning / 1e6, "MHz")
 
         self.qubit_max_freq = qubit_freq - max_detuning
-
+        # print('max_freq = ', self.qubit_max_freq)
+        print('qubit freq = ', qubit_freq)
+        print('max detuning = ', max_detuning)
+        print('max freq = ', self.qubit_max_freq)
         plt.axvline(max_detuning / 1e6, color='r', linestyle='--', label='max')
 
         if self.span < 0.8 * u.MHz:
@@ -129,8 +146,8 @@ class Qubit_Spec:
         plt.show()
 
     def update_max_freq(self):
-        max_freq = self.frequencies[np.argmax(self.state)]
-        modify_json(self.qubit, 'qubit', 'qubit_freq', qubit_LO - max_freq)
+        # max_freq = self.frequencies[np.argmax(self.state)]
+        modify_json(self.qubit, 'qubit', 'qubit_freq', int(self.qubit_max_freq))
 
     def save(self):
         # saver = Saver()

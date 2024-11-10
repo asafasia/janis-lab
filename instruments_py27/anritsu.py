@@ -1,8 +1,11 @@
 from time import sleep
 import visa
-from .instrument import Instrument
 
-class Anritsu_MG(Instrument):
+
+# from .instrument import Instrument
+
+
+class Anritsu_MG:
     """"A class for controlling Antritsu MG using GPIB"""
 
     def __init__(self, address):
@@ -15,7 +18,7 @@ class Anritsu_MG(Instrument):
             "on": lambda on: self.set_on(on)
         }
 
-    def setup_MG(self, freq = None, power = None, set_on=True):
+    def setup_MG(self, freq=None, power=None, set_on=True):
         """Set the MG to a given frequency (in MHz) and power (in dBm). If one of them is None don't set it.
         if set_on is True set power on"""
 
@@ -28,7 +31,6 @@ class Anritsu_MG(Instrument):
         if set_on:
             self.MG.write("RF 1")
             sleep(0.100)
-
 
     def set_on(self, on=True):
         """Set MG on/off"""
@@ -45,3 +47,7 @@ class Anritsu_MG(Instrument):
             raise Exception("Anritsu_MG.update_property: Property is not supported")
 
         self.update_functions[property](value)
+
+
+if __name__ == "__main__":
+    sg = Anritsu_MG("GPIB0::19::INSTR")

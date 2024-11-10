@@ -10,6 +10,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from qualang_tools.loops import from_array
 
+from experiment_utils.configuration import opt_weights
+
 
 ##############
 # QUA macros #
@@ -122,21 +124,26 @@ def readout_macro(threshold=None, state=None, I=None, Q=None):
         Q = declare(fixed)
     if threshold is not None and state is None:
         state = declare(bool)
-    measure(
-        "readout",
-        "resonator",
-        None,
-        dual_demod.full('cos', 'out1', 'sin', 'out2', I),
-        dual_demod.full('minus_sin', 'out1', 'cos', 'out2', Q)
-    )
-    #
-    # measure(
-    #     "readout",
-    #     "resonator",
-    #     None,
-    #     demod.full('opt_cos', I, 'out1'),
-    #     demod.full('opt_sin', Q, 'out1')
-    # )
+
+    if opt_weights:
+        measure(
+            "readout",
+            "resonator",
+            None,
+            demod.full('opt_cos', I, 'out1'),
+            demod.full('opt_sin', Q, 'out1')
+        )
+    else:
+
+        measure(
+            "readout",
+            "resonator",
+            None,
+            dual_demod.full('cos', 'out1', 'sin', 'out2', I),
+            dual_demod.full('minus_sin', 'out1', 'cos', 'out2', Q)
+        )
+
+
 
     if threshold is not None:
         assign(state, I > threshold)

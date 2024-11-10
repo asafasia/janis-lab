@@ -12,14 +12,14 @@ import matplotlib.pyplot as plt
 ###################
 # The QUA program #
 ###################
-n_avg = 5000
+n_avg = 2000
 tau_min = 4
-tau_max = 40_000 // 4
+tau_max = 20_000 // 4
 N = 200
 d_tau = tau_max // N // 4 * 4
 
 taus = np.arange(tau_min, tau_max + 0.01, d_tau)  # + 0.1 to add tau_max to taus
-detuning = 0.25 * u.MHz  # in Hz
+detuning = 1 * u.MHz  # in Hz
 state_discrimination = True
 
 print("qubit_freq", qubit_freq / 1e6, "MHz")
@@ -91,7 +91,7 @@ else:
 
     y = state_measurement_stretch(fid_matrix, state)
 
-    plt.plot(taus * 4 / 1e3, y, '.', label='I')
+    plt.plot(taus * 4 / 1e3, y, '.')
     try:
         args = curve_fit(exp_decay, taus * 4, y, p0=[max(y) / 2 - min(y) / 2, 10000, detuning / 1e9, np.mean(I)])[0]
         plt.plot(taus * 4 / 1e3, exp_decay(taus * 4, *args),

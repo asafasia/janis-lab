@@ -30,4 +30,4 @@ def modify_json(qubit, element, key_to_change, new_value):
 if __name__ == "__main__":
     key = 'IQ_bias'
     new_value = {"I": 0.1, "Q": 0.2}
-    modify_json("qubit1", "qubit", key, new_value)
+    modify_json("qubit4", "qubit", key, new_value)

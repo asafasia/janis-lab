@@ -7,9 +7,11 @@ optimal_weights_path = 'C:/Users/owner/Documents/GitHub/janis-lab/experiment_uti
 
 user = 'Asaf'
 if user == 'Asaf':
-    args_path += 'args_2.json'
-elif user == 'Arel':
-    args_path += 'args.json'
+    args_path += 'args_asaf.json'
+elif user == 'Ariel':
+    args_path += 'args_ariel.json'
+elif user == 'Guy':
+    pass
 
 
 def IQ_imbalance(g, phi):
@@ -27,14 +29,23 @@ def IQ_imbalance(g, phi):
 
 
 def state_measurement_stretch(fid_matrix, states):
-    y = np.array([1 - states, states])
     bias = (fid_matrix[0][0] + fid_matrix[1][1]) / 2 - 0.5
-    # print(f"Bias = {bias + 0.5}")
-
     inverse_fid_matrix = np.linalg.inv(fid_matrix)
-    new_y = inverse_fid_matrix @ y - bias
+    p = 0.95
+    # bias = 0
+    if isinstance(states, (int, float)):
+        vec = np.array([1 - states, states])
+        new_vec = vec.T @ inverse_fid_matrix - bias
+        return new_vec[1]
+    else:
+        new_vec = []
+        for state in states:
+            vec = np.array([1 - state, state])
+            new_vec.append(vec.T @ inverse_fid_matrix - bias)
 
-    return new_y[1]
+        new_vec = np.array(new_vec)
+
+        return new_vec.T[1]
 
 
 u = unit(coerce_to_integer=True)
@@ -55,15 +66,14 @@ qubit_args = args[qubit]["qubit"]
 qubit_LO = qubit_args['qubit_LO']
 qubit_freq = qubit_args['qubit_freq']
 qubit_IF = qubit_LO - qubit_freq
-qubit_correction_matrix = qubit_args['qubit_correction_matrix']
+
+qubit_correction_matrix = IQ_imbalance(0.029265454545454553, 0.1055563636363636)
 thermalization_time = qubit_args['thermalization_time']
 drag_coef = 0
 anharmonicity = -200 * u.MHz
 AC_stark_detuning = 0 * u.MHz
 saturation_len = qubit_args['saturation_length']
 saturation_amp = qubit_args['saturation_amplitude']
-res_pulse_len = qubit_args['resonator_spec_pulse_length']
-res_pulse_amp = qubit_args['resonator_spec_pulse_amplitude']
 pi_pulse_length = qubit_args['pi_pulse_length']
 pi_pulse_amplitude = qubit_args['pi_pulse_amplitude']
 qubit_T1 = qubit_args['T1']
@@ -77,12 +87,28 @@ resonator_freq = resonator_args['resonator_freq']
 resonator_IF = resonator_LO - resonator_freq
 readout_len = resonator_args['readout_pulse_length']
 readout_amp = resonator_args['readout_pulse_amplitude']
-resonator_correction_matrix = resonator_args['resonator_correction_matrix']
+resonator_correction_matrix = IQ_imbalance(-0.30190545454545453, 0.09805090909090906)
 time_of_flight = resonator_args['time_of_flight']
 smearing = resonator_args['smearing']
 fid_matrix = resonator_args['fidelity_matrix']
 depletion_time = 2000
 ringdown_length = 0
+from scipy import special
+
+# resonator_pulse = readout_amp * (special.erf((np.arange(readout_len) -200)+1) / 600)
+
+
+x_readout = np.arange(readout_len)
+y_readout = np.tanh(x_readout / 600)
+resonator_pulse = readout_amp * np.ones(readout_len) * y_readout
+
+# resonator_pulse = readout_amp * np.ones(readout_len)
+
+
+# resonator_pulse = readout_amp * np.ones(readout_len) * (1 - np.arange(readout_len) / readout_len)
+
+
+# resonator_pulse = readout_amp * (1 - np.arange(readout_len) / readout_len)* special.erf(np.arange(readout_len) / 600)
 
 
 def amp_V_to_Hz(amp):
@@ -137,15 +163,15 @@ config = {
     "controllers": {
         con: {
             "analog_outputs": {
-                "1": {"offset": resonator_args['IQ_bias']['I']},  # I resonator
-                "2": {"offset": resonator_args['IQ_bias']['Q']},  # Q resonator
-                "3": {"offset": qubit_args['IQ_bias']['I']},  # I qubit
-                "4": {"offset": qubit_args['IQ_bias']['Q']},  # Q qubit
+                1: {"offset": resonator_args['IQ_bias']['I']},  # I resonator
+                2: {"offset": resonator_args['IQ_bias']['Q']},  # Q resonator
+                3: {"offset": qubit_args['IQ_bias']['I']},  # I qubit
+                4: {"offset": qubit_args['IQ_bias']['Q']},  # Q qubit
             },
             "digital_outputs": {},
             "analog_inputs": {
-                1: {"offset": 0, "gain_db": 0},  # I from down-conversion
-                2: {"offset": 0, "gain_db": 0},  # Q from down-conversion
+                1: {"offset": 0.257, "gain_db": 3},  # I from down-conversion
+                2: {"offset": 0.1913, "gain_db": 0},  # Q from down-conversion
             },
         }
     },
@@ -161,8 +187,8 @@ config = {
             "operations": {
                 "cw": "const_pulse",
                 "saturation": "saturation_pulse",
-                "res_spec": "res_spec_pulse",
                 "x180": "x180_pulse",
+                "y180": "y180_pulse",
                 "x90": "x90_pulse",
                 "-x90": "-x90_pulse",
                 "y90": "y90_pulse",
@@ -187,11 +213,10 @@ config = {
                 "-y90": "-y90_pulse",
             },
         },
-
         "resonator": {
             "mixInputs": {
-                "I": (con, resonator_args['IQ_input']['I']),
-                "Q": (con, resonator_args['IQ_input']['Q']),
+                "I": (con, 1),
+                "Q": (con, 2),
                 "lo_frequency": resonator_LO,
                 "mixer": "mixer_resonator",
             },
@@ -228,15 +253,6 @@ config = {
                     "Q": "zero_wf"
                 },
         },
-        "res_spec_pulse": {
-            "operation": "control",
-            "length": res_pulse_len,
-            "waveforms":
-                {
-                    "I": "resonator_spec_drive_wf",
-                    "Q": "zero_wf"
-                },
-        },
 
         "x180_pulse": {
             "operation": "control",
@@ -244,6 +260,14 @@ config = {
             "waveforms": {
                 "I": "x180_I_wf",
                 "Q": "x180_Q_wf",
+            },
+        },
+        "y180_pulse": {
+            "operation": "control",
+            "length": pi_pulse_length,
+            "waveforms": {
+                "I": "y180_I_wf",
+                "Q": "y180_Q_wf",
             },
         },
         "x90_pulse": {
@@ -291,7 +315,7 @@ config = {
             "operation": "measurement",
             "length": readout_len,
             "waveforms": {
-                "I": "readout_wf",
+                "I": "readout_wf2",
                 "Q": "zero_wf"
             },
             "integration_weights": {
@@ -309,12 +333,13 @@ config = {
     },
 
     "waveforms": {
-        "const_wf": {"type": "constant", "sample": 0.1},
+        "const_wf": {"type": "constant", "sample": 0.01},
         "saturation_drive_wf": {"type": "constant", "sample": saturation_amp},
-        "resonator_spec_drive_wf": {"type": "constant", "sample": res_pulse_amp},
         "zero_wf": {"type": "constant", "sample": 0.0},
         "x180_I_wf": {"type": "constant", "sample": 0},
         "x180_Q_wf": {"type": "constant", "sample": qubit_args['pi_pulse_amplitude']},
+        "y180_I_wf": {"type": "constant", "sample": qubit_args['pi_pulse_amplitude']},
+        "y180_Q_wf": {"type": "constant", "sample": 0},
         "x90_I_wf": {"type": "constant", "sample": 0},
         "x90_Q_wf": {"type": "constant", "sample": pi_pulse_amplitude / 2},
         "minus_x90_I_wf": {"type": "constant", "sample": 0},
@@ -326,6 +351,7 @@ config = {
         "minus_y90_I_wf": {"type": "constant", "sample": qubit_args['pi_pulse_amplitude'] / 2},
         "minus_y90_Q_wf": {"type": "constant", "sample": 0},
         "readout_wf": {"type": "constant", "sample": readout_amp},
+        "readout_wf2": {"type": "arbitrary", "samples": resonator_pulse}
     },
 
     "mixers": {
@@ -333,7 +359,7 @@ config = {
             {
                 "intermediate_frequency": qubit_IF,
                 "lo_frequency": qubit_LO,
-                "correction": IQ_imbalance(-0.0048, 0.0816)
+                "correction": qubit_correction_matrix
             }
 
         ],
@@ -341,7 +367,7 @@ config = {
             {
                 "intermediate_frequency": qubit_IF,
                 "lo_frequency": qubit_LO,
-                "correction": IQ_imbalance(-0.0048, 0.0816)
+                "correction": qubit_correction_matrix
             }
 
         ],
@@ -349,7 +375,7 @@ config = {
             {
                 "intermediate_frequency": resonator_IF,
                 "lo_frequency": resonator_LO,
-                "correction": IQ_imbalance(-0.0552, 0.104)
+                "correction": resonator_correction_matrix
 
             }
 

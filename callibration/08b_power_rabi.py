@@ -1,3 +1,4 @@
+import numpy as np
 from scipy.optimize import curve_fit
 from qm.qua import *
 from qm import QuantumMachinesManager
@@ -12,8 +13,8 @@ import experiment_utils.labber_util as lu
 # The QUA program #
 ###################
 
-n_avg = 1000  # The number of averages
-n_a = 50
+n_avg = 2000  # The number of averages
+n_a = 100
 amplitudes = np.linspace(0, 1, n_a)
 state_discrimination = True
 num_pis = 4  # Number of pi pulses in the sequence
@@ -33,7 +34,6 @@ with program() as power_rabi:
         with for_(*from_array(a, amplitudes)):  # QUA for_ loop for sweeping the pulse amplitude pre-factor
             for _ in range(num_pis):
                 play("x180" * amp(a), "qubit")
-            wait(200, "qubit")
             align("qubit", "resonator")
             measure(
                 "readout",
@@ -71,7 +71,7 @@ if simulate:
     simulation_config = SimulationConfig(duration=10_000)  # In clock cycles = 4ns
     job = qmm.simulate(config, power_rabi, simulation_config)
     job.get_simulated_samples().con1.plot()
-
+    plt.show()
 else:
     qm = qmm.open_qm(config)
     job = qm.execute(power_rabi)
@@ -86,7 +86,11 @@ else:
 
     # %%
     x = amplitudes * pi_pulse_amplitude * num_pis
+    # y = state
+    # y = R
     y = state
+
+    print(y)
     fid_matrix = resonator_args['fidelity_matrix']
     y = state_measurement_stretch(fid_matrix, y)
     plt.plot(x * 1e3, y, '.')
@@ -97,18 +101,17 @@ else:
 
 
     rabi_amp = qubit_args['pi_pulse_amplitude']
-    fit_args = curve_fit(cos_fit, x, y, p0=[max(y) / 2 - min(y) / 2, rabi_amp * 2, np.mean(y),0.5])[0]
+    fit_args = curve_fit(cos_fit, x, y, p0=[max(y) / 2 - min(y) / 2, rabi_amp * 2, np.mean(y), 0.5])[0]
     plt.plot(x * 1e3, cos_fit(x, *fit_args), 'r-', label=f'fit rabi amp = {fit_args[1] / 2:.5f} V')
 
     plt.suptitle("Power Rabi")
     plt.xlabel("Rabi amplitude (mV)")
     plt.ylabel("amplitude (V)")
     plt.legend()
-    plt.ylim([-0.2, 1.2])
+    # plt.ylim([-0.2, 1.2])
 
     plt.show()
-    plt.ylim([0, 1.2])
-
+    # plt.ylim([0, 1.2])
 
     # %%
 

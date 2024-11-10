@@ -17,7 +17,7 @@ The data undergoes post-processing to calibrate three distinct parameters:
 from qm.qua import *
 from qm import QuantumMachinesManager
 from qm import SimulationConfig
-from configuration import *
+from experiment_utils.configuration import *
 import matplotlib.pyplot as plt
 from scipy.signal import savgol_filter
 
@@ -25,7 +25,7 @@ from scipy.signal import savgol_filter
 ###################
 # The QUA program #
 ###################
-n_avg = 5000  # Number of averaging loops
+n_avg = 50000  # Number of averaging loops
 
 with program() as raw_trace_prog:
     n = declare(int)  # QUA variable for the averaging loop
