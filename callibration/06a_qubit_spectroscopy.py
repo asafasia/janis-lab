@@ -5,8 +5,8 @@ from experiments_objects.qubit_spectroscopy import Qubit_Spec
 if __name__ == "__main__":
     args = {
         'qubit': 'qubit4',
-        'n_avg': 500,
-        'N': 51,
+        'n_avg': 1000,
+        'N': 101,
         'span': 50 * u.MHz,
         'state_discrimination': True,
         'pulse_amplitude': 0.01,

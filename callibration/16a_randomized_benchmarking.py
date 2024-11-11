@@ -33,9 +33,9 @@ import matplotlib.pyplot as plt
 # Program-specific variables #
 ##############################
 
-num_of_sequences = 50  # Number of random sequences
+num_of_sequences = 100  # Number of random sequences
 n_avg = 500  # Number of averaging loops for each random sequence
-max_circuit_depth = 500  # Maximum circuit depth
+max_circuit_depth = 400  # Maximum circuit depth
 delta_clifford = 25  # Play each sequence with a depth step equals to 'delta_clifford - Must be > 0
 assert (max_circuit_depth / delta_clifford).is_integer(), "max_circuit_depth / delta_clifford must be an integer."
 seed = 345324  # Pseudo-random number generator seed
@@ -77,7 +77,7 @@ def play_sequence(sequence_list, depth):
     with for_(i, 0, i <= depth, i + 1):
         with switch_(sequence_list[i], unsafe=True):
             with case_(0):
-                wait(pi_pulse_length // 4, "qubit")
+                wait(square_pi_len // 4, "qubit")
             with case_(1):
                 play("x180", "qubit")
             with case_(2):
@@ -288,7 +288,7 @@ else:
         state = results.fetch_all()[0]
         value_avg = np.mean(state, axis=0)
         error_avg = np.std(state, axis=0)
-        value_avg = state_measurement_stretch(fid_matrix, value_avg)
+        value_avg = 1 - state_measurement_stretch(fid_matrix, value_avg)
 
     else:
         results = fetching_tool(job, data_list=["I", "Q"])

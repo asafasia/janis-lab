@@ -2,14 +2,15 @@
 Measure the qubit in the ground and excited state to create the IQ blobs. If the separation and the fidelity are good
 enough, gives the parameters needed for active reset
 """
+
 from qm.qua import *
 from qm import QuantumMachinesManager
 from configuration import *
+# from experiment_utils.configuration import *
 from TwoStateDiscriminator import TwoStateDiscriminator
 import seaborn as sns
 import numpy as np
 import matplotlib.pyplot as plt
-
 
 #####################################
 #  Open Communication with the QOP  #
@@ -34,7 +35,7 @@ discriminator = TwoStateDiscriminator(
     config=config,
     update_tof=False,
     rr_qe=rr_qe,
-    path=f"ge_disc_params_{rr_qe}.npz",
+    path=f"optimal_weights.npz",
     lsb=lsb,
     meas_len=readout_len,
     smearing=smearing,
@@ -77,7 +78,7 @@ with program() as benchmark:
 qm = qmm.open_qm(config)
 
 job = qm.execute(benchmark)
-#
+
 result_handles = job.result_handles
 result_handles.wait_for_all_values()
 res = result_handles.get("res").fetch_all()["value"]
@@ -87,12 +88,12 @@ Q = result_handles.get("Q").fetch_all()["value"]
 plt.figure()
 plt.hist(I[np.array(seq0) == 0], 50)
 plt.hist(I[np.array(seq0) == 1], 50)
-plt.plot([-0.005249174103650323] * 2, [0, 60], "g")
+plt.plot([discriminator.get_threshold()] * 2, [0, 60], "g")
 plt.show()
-#
+
 plt.figure()
 plt.plot(I, Q, ".")
-# discriminator.plot_sigma_mu()
+discriminator.plot_sigma_mu()
 plt.axis("equal")
 
 p_s = np.zeros(shape=(2, 2))

@@ -35,7 +35,7 @@ f_min = resonator_freq - span / 2
 f_max = resonator_freq + span / 2
 df = 100 * u.kHz
 long_pulse = False
-simulate = True
+simulate = False
 
 frequencies = resonator_LO - np.arange(f_min, f_max + 0.1, df)
 

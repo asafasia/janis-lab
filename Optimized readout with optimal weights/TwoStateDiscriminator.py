@@ -42,8 +42,7 @@ class TwoStateDiscriminator(StateDiscriminator):
         self._add_iw_to_all_pulses(f"opt_minus_sin_{self.rr_qe}")
         if self.update_tof or self.finish_train == 1:
             self.config["elements"][self.rr_qe]["time_of_flight"] = (
-                    self.config["elements"][self.rr_qe]["time_of_flight"] - self.config["elements"][self.rr_qe][
-                "smearing"]
+                self.config["elements"][self.rr_qe]["time_of_flight"] - self.config["elements"][self.rr_qe]["smearing"]
             )
             self.config["elements"][self.rr_qe]["smearing"] = 0
 
@@ -51,12 +50,12 @@ class TwoStateDiscriminator(StateDiscriminator):
             self._IQ_mu_sigma(b_vec)
 
     def _IQ_mu_sigma(self, b_vec):
-        out1 = np.real(self.x) * 2 ** -12
+        out1 = np.real(self.x) * 2**-12
         if not self.lsb:
-            out2 = np.imag(self.x) * 2 ** -12
+            out2 = np.imag(self.x) * 2**-12
             sign = 1
         else:
-            out2 = -np.imag(self.x) * 2 ** -12
+            out2 = -np.imag(self.x) * 2**-12
             sign = -1
         rr_freq = self._get_qe_freq(self.rr_qe)
         cos = np.cos(2 * np.pi * rr_freq * 1e-9 * (self.ts - self.time_diff))
@@ -68,8 +67,8 @@ class TwoStateDiscriminator(StateDiscriminator):
         Q_res = np.sum(out2 * (cos * np.real(b_vec) + sin * np.imag(-b_vec)), axis=1) - np.sum(
             out1 * (cos * np.imag(b_vec) + sin * np.real(b_vec)) * sign, axis=1
         )
-        I_res *= 2 ** -12
-        Q_res *= 2 ** -12
+        I_res *= 2**-12
+        Q_res *= 2**-12
         import matplotlib.pyplot as plt
 
         plt.figure()
@@ -108,8 +107,11 @@ class TwoStateDiscriminator(StateDiscriminator):
             plt.plot(a, b)
 
     def get_threshold(self):
-        bias = self.saved_data["bias"]
-        return bias[0] - bias[1]
+        if self.saved_data is not None:
+            bias = self.saved_data["bias"]
+            return bias[0] - bias[1]
+        else:
+            return 0
 
     def measure_state(self, pulse, out1, out2, res, adc=None, I=None, Q=None):
         """
@@ -128,23 +130,23 @@ class TwoStateDiscriminator(StateDiscriminator):
         QQ = declare(fixed)
 
         if not self.lsb:
-            Q1_weight, Q2_weight = f"minus_sin", f"sin"
+            Q1_weight, Q2_weight = f"opt_minus_sin_{self.rr_qe}", f"opt_sin_{self.rr_qe}"
         else:
-            Q1_weight, Q2_weight = f"sin", f"minus_sin"
+            Q1_weight, Q2_weight = f"opt_sin_{self.rr_qe}", f"opt_minus_sin_{self.rr_qe}"
 
         if Q is not None:
             measure(
                 pulse,
                 self.rr_qe,
                 adc,
-                dual_demod.full(f"cos", out1, Q2_weight, out2, II),
-                dual_demod.full(Q1_weight, out1, f"cos", out2, QQ),
+                dual_demod.full(f"opt_cos_{self.rr_qe}", out1, Q2_weight, out2, II),
+                dual_demod.full(Q1_weight, out1, f"opt_cos_{self.rr_qe}", out2, QQ),
             )
 
         else:
             measure(pulse, self.rr_qe, adc, dual_demod.full(f"opt_cos_{self.rr_qe}", out1, Q2_weight, out2, II))
-        #
-        assign(res, II < -0.005249174103650323)
+
+        assign(res, II < self.get_threshold())
         if I is not None:
             assign(I, II)
         if Q is not None:

@@ -13,7 +13,7 @@ import experiment_utils.labber_util as lu
 # The QUA program #
 ###################
 
-n_avg = 2000  # The number of averages
+n_avg = 1000  # The number of averages
 n_a = 100
 amplitudes = np.linspace(0, 1, n_a)
 state_discrimination = True
@@ -90,7 +90,6 @@ else:
     # y = R
     y = state
 
-    print(y)
     fid_matrix = resonator_args['fidelity_matrix']
     y = state_measurement_stretch(fid_matrix, y)
     plt.plot(x * 1e3, y, '.')
@@ -112,6 +111,8 @@ else:
 
     plt.show()
     # plt.ylim([0, 1.2])
+
+    print("Rabi amplitude: ", fit_args[1] / 2)
 
     # %%
 

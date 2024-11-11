@@ -14,9 +14,9 @@ import matplotlib.pyplot as plt
 # The QUA program #
 ###################
 
-n_avg = 5200  # The number of averages
+n_avg = 5000  # The number of averages
 state_discrimination = True
-n_pis = 20  # Number of pi pulses in the sequence
+n_pis = 100  # Number of pi pulses in the sequence
 
 with program() as power_rabi:
     n = declare(int)  # QUA variable for the averaging loop

@@ -15,6 +15,7 @@ from qm.qua import *
 from qm import QuantumMachinesManager
 from qm import SimulationConfig
 from qutip import Bloch
+from sympy.physics.quantum.density import fidelity
 
 from experiment_utils.configuration import *
 from qualang_tools.results import progress_counter, fetching_tool
@@ -149,13 +150,12 @@ bloch_sphere.label_bra(bloch_sphere.South * 1.1, "e")
 bloch_sphere.label_bra(bloch_sphere.East * 1.1, "X")
 bloch_sphere.label_bra(bloch_sphere.West * 1.1, "Y")
 # bloch_sphere.plot_vector((1, 1, 0), 'Test', color='r')
-# bloch_sphere.plot_vector((1, 0, 1), bra_tex('k'), color='g')
 
 ###################
 # The QUA program #
 ###################
 
-n_avg = 10000
+n_avg = 20000
 
 with program() as state_tomography:
     n = declare(int)  # QUA variable for average loop
@@ -164,12 +164,12 @@ with program() as state_tomography:
     state_st = declare_stream()  # Stream for the qubit state
     n_st = declare_stream()  # Stream for the averaging iteration 'n'
     with for_(n, 0, n < n_avg, n + 1):  # QUA for_ loop for averaging
-        with for_(c, 0, c <= 2, c + 1):  # QUA for_ loop for switching between projections
+        with for_(c, 0, c <= 5, c + 1):  # QUA for_ loop for switching between projections
             # Add here whatever state you want to characterize
             # play("x90", "qubit", duration=10)
             # frame_rotation_2pi(1 / 4, "qubit")
 
-            play("x90", "qubit")
+            # play("x90", "qubit")
 
             with switch_(c):
                 with case_(0):  # projection along X
@@ -183,7 +183,18 @@ with program() as state_tomography:
                     wait(thermalization_time // 4, "resonator")
                     # Save the qubit state to its stream
                     save(state, state_st)
-                with case_(1):  # projection along Y
+                with case_(1):  # projection along X
+                    # Map the X-component of the Bloch vector onto the Z-axis (measurement axis)
+                    play("y90", "qubit")
+                    # Align the two elements to measure after playing the qubit pulses.
+                    align("qubit", "resonator")
+                    # Measure the resonator and extract the qubit state
+                    state, _, _ = readout_macro(threshold=ge_threshold, state=state)
+                    # Wait for the qubit to decay to the ground state
+                    wait(thermalization_time // 4, "resonator")
+                    # Save the qubit state to its stream
+                    save(state, state_st)
+                with case_(2):  # projection along Y
                     # Map the Y-component of the Bloch vector onto the Z-axis (measurement axis)
                     play("x90", "qubit")
                     # Align the two elements to measure after playing the qubit pulses.
@@ -194,7 +205,31 @@ with program() as state_tomography:
                     wait(thermalization_time // 4, "resonator")
                     # Save the qubit state to its stream
                     save(state, state_st)
-                with case_(2):  # projection along Z
+                with case_(3):  # projection along Y
+                    # Map the Y-component of the Bloch vector onto the Z-axis (measurement axis)
+                    play("-x90", "qubit")
+                    # Align the two elements to measure after playing the qubit pulses.
+                    align("qubit", "resonator")
+                    # Measure the resonator and extract the qubit state
+                    state, _, _ = readout_macro(threshold=ge_threshold, state=state)
+                    # Wait for the qubit to decay to the ground state
+                    wait(thermalization_time // 4, "resonator")
+                    # Save the qubit state to its stream
+                    save(state, state_st)
+                with case_(4):  # projection along Z
+                    wait(40, "qubit")
+                    # Align the two elements to measure after playing the qubit pulses.
+                    align("qubit", "resonator")
+                    # Measure the Z-component of the Bloch vector
+                    state, _, _ = readout_macro(threshold=ge_threshold, state=state)
+                    # Wait for the qubit to decay to the ground state
+                    wait(thermalization_time // 4, "resonator")
+                    # Save the qubit state to its stream
+                    save(state, state_st)
+                with case_(5):
+                    play("x180", "qubit")
+                    # Align the two elements to measure after playing the qubit pulses.
+                    align("qubit", "resonator")
                     # Measure the Z-component of the Bloch vector
                     state, _, _ = readout_macro(threshold=ge_threshold, state=state)
                     # Wait for the qubit to decay to the ground state
@@ -205,7 +240,7 @@ with program() as state_tomography:
 
     with stream_processing():
         n_st.save("iteration")
-        state_st.boolean_to_int().buffer(3).average().save("states")
+        state_st.boolean_to_int().buffer(6).average().save("states")
 
 #####################################
 #  Open Communication with the QOP  #
@@ -241,26 +276,33 @@ else:
         state = -2 * (state - 0.5)
         # Plot the Bloch vector on the Bloch sphere
 
-    print(f"state1 = {state[0]}, state2 = {state[1]}, state3 = {state[2]}")
+    print(f"state x = {state[0]},state -x = {state[1]} "
+          f"\n state y  = {state[2]},state  -y = {state[3]}"
+          f"\n state z = {state[4]}, state -z = {state[5]}")
     # bloch_sphere.plot_vector(plot_vector(state[0], state[1], state[2]), "", color="r")
 
-    pnt = [state[0], state[1], state[2]]
-    b = Bloch()
-    b.add_vectors(pnt)
-    b.show()
-
+    pnt = [state[0]/2-state[1]/2, state[2]/2-state[3]/2, state[4]/2 -state[5]/2]
+    # b = Bloch()
+    # b.add_vectors(pnt)
+    # b.show()
+    bloch_sphere.plot_vector(pnt, bra_tex('k'), color='g')
+    plt.show()
     # Derive the density matrix
     I = np.array([[1, 0], [0, 1]])
     sigma_x = np.array([[0, 1], [1, 0]])
     sigma_y = np.array([[0, -1j], [1j, 0]])
     sigma_z = np.array([[1, 0], [0, -1]])
     # Zero order approximation
-    rho = 0.5 * (I + state[0] * sigma_x + state[1] * sigma_y + state[2] * sigma_z)
+    rho = 0.5 * (I + pnt[0] * sigma_x + pnt[1] * sigma_y + pnt[2] * sigma_z)
+    from qutip import Qobj
+    Qrho = Qobj(rho).norm()
+
+    print(fidelity(Qrho, Qobj([[1, 0], [0, 0]])))
     print(f"The density matrix is:\n{rho}")
-    a = DensityMatrix(rho,dims=(2))
+    a = DensityMatrix(rho, dims=(2))
 
     from qiskit.visualization import plot_state_city
 
     plot_state_city(a, title='Density Matrix')
     plt.show()
-    # plt.show()
+    plt.show()

@@ -32,7 +32,11 @@ def generate_half_lorentzian_pulse(amplitude=0.01, length=1000, cutoff=0.1, n=1 
 def readout_pulse(x):
     return
 
-
+def generate_SL_ramp_up_and_hold(amplitude=0.01, length=1000, cutoff=0.1, n=1 / 2):
+    vec = np.array(generate_lorentzian_pulse(amplitude=amplitude, length=length, cutoff=cutoff, n=n))
+    ramp = np.linspace(0, amplitude, length)
+    hold = np.ones(length) * amplitude
+    return (ramp * vec).tolist(), hold.tolist()
 
 if __name__ == "__main__":
     amplitude = 1
