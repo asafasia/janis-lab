@@ -33,10 +33,10 @@ import matplotlib.pyplot as plt
 # Program-specific variables #
 ##############################
 
-num_of_sequences = 100  # Number of random sequences
+num_of_sequences = 20  # Number of random sequences
 n_avg = 500  # Number of averaging loops for each random sequence
-max_circuit_depth = 400  # Maximum circuit depth
-delta_clifford = 25  # Play each sequence with a depth step equals to 'delta_clifford - Must be > 0
+max_circuit_depth = 700  # Maximum circuit depth
+delta_clifford = 10  # Play each sequence with a depth step equals to 'delta_clifford - Must be > 0
 assert (max_circuit_depth / delta_clifford).is_integer(), "max_circuit_depth / delta_clifford must be an integer."
 seed = 345324  # Pseudo-random number generator seed
 # Flag to enable state discrimination if the readout has been calibrated (rotated blobs and threshold)
@@ -257,10 +257,6 @@ else:
         results = fetching_tool(job, data_list=["state_avg", "iteration"], mode="live")
     else:
         results = fetching_tool(job, data_list=["I_avg", "Q_avg", "iteration"], mode="live")
-    # Live plotting
-    fig = plt.figure()
-    interrupt_on_close(fig, job)  # Interrupts the job when closing the figure
-    # data analysis
     x = np.arange(1, max_circuit_depth + 0.1, delta_clifford)
     while results.is_processing():
         # data analysis
@@ -274,13 +270,7 @@ else:
 
         # Progress bar
         progress_counter(iteration, num_of_sequences, start_time=results.get_start_time())
-        # Plot averaged values
-    # plt.cla()
-    # plt.plot(x, value_avg, marker=".")
-    # plt.xlabel("Number of Clifford gates")
-    # plt.ylabel("Sequence Fidelity")
-    # plt.title("Single qubit RB")
-    # plt.pause(0.1)
+
 
     # At the end of the program, fetch the non-averaged results to get the error-bars
     if state_discrimination:
@@ -309,7 +299,7 @@ else:
     )
     pars, cov = fit
     plt.figure()
-    plt.plot(x, value_avg, "g.")
+    plt.plot(x, value_avg, "g.",  markersize=10)
     plt.plot(x, power_law(x, *pars), linestyle="--", linewidth=2,
              label=f"Fit: A = {pars[0]:.3}, B = {pars[1]:.3}, p = {pars[2]:.3}")
     plt.xlabel("Number of Clifford gates")

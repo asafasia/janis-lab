@@ -20,7 +20,8 @@ class Qubit_Spec:
             state_discrimination,
             pulse_amplitude,
             pulse_length,
-            state_measurement_stretch
+            state_measurement_stretch,
+            two_photon=False,
     ):
         self.qubit_max_freq = None
         self.IF_max_freq = None
@@ -30,12 +31,16 @@ class Qubit_Spec:
         self.N = N
         self.n_avg = n_avg
         self.state_measurement_stretch = state_measurement_stretch
+        self.two_photon = two_photon
+
         self.frequencies = qubit_LO - np.arange(qubit_freq - self.span / 2, qubit_freq + self.span / 2,
                                                 self.span // self.N)
+        if self.two_photon:
+            self.frequencies = self.frequencies - qubit_anharmonicity / 2
         print(self.frequencies)
         self.detunings = qubit_freq - qubit_LO + self.frequencies
         self.state_discrimination = state_discrimination
-        print("rabi_freq = ", saturation_amp / pi_pulse_amplitude / (2 * pi_pulse_length * 1e-9) / 1e6, "MHz")
+        print("rabi_freq = ", saturation_amp / x180_amp / (2 * x180_len * 1e-9) / 1e6, "MHz")
         self.experiment = None
         self.pulse_amp = pulse_amplitude
         self.pulse_length = pulse_length
@@ -122,7 +127,7 @@ class Qubit_Spec:
             plt.plot(self.detunings / 1e6, lorentzian(self.detunings, *args[0]), label='fit')
             max_detuning = args[0][1]
             # plt.axhline(y=a / 2 + d, color='g', linestyle='--')
-
+            plt.xlim([self.detunings[-1] / 1e6, self.detunings[0] / 1e6])
         except:
             print("fit failed")
             max_detuning = self.detunings[np.argmax(self.state)]
@@ -147,7 +152,12 @@ class Qubit_Spec:
 
     def update_max_freq(self):
         # max_freq = self.frequencies[np.argmax(self.state)]
-        modify_json(self.qubit, 'qubit', 'qubit_freq', int(self.qubit_max_freq))
+        if not self.two_photon:
+            modify_json(self.qubit, 'qubit', 'qubit_freq', int(self.qubit_max_freq))
+        else:
+            alpha = -(qubit_freq - self.qubit_max_freq) * 2
+            print('new alpha:', alpha / 1e6, 'MHz')
+            modify_json(self.qubit, 'qubit', 'qubit_anharmonicity', int(alpha))
 
     def save(self):
         # saver = Saver()

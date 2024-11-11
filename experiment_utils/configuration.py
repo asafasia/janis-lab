@@ -64,9 +64,15 @@ qubit = 'qubit4'
 #                  Qubits                   #
 #############################################
 qubit_args = args[qubit]["qubit"]
+
+qubit_anharmonicity = qubit_args['qubit_anharmonicity']
+
 qubit_LO = qubit_args['qubit_LO']
 qubit_freq = qubit_args['qubit_freq']
 qubit_IF = qubit_LO - qubit_freq
+qubit_ef_freq = qubit_freq - qubit_anharmonicity
+qubit_ef_IF = qubit_LO - qubit_ef_freq
+
 mixer_qubit_g = 0.2054400000000001
 mixer_qubit_phi = 0.19518545454545452
 qubit_correction_matrix = IQ_imbalance(mixer_qubit_g, mixer_qubit_phi)
@@ -80,13 +86,13 @@ saturation_amp = qubit_args['saturation_amplitude']
 square_pi_len = qubit_args['pi_pulse_length']
 square_pi_amp = qubit_args['pi_pulse_amplitude']
 # Drag pulses
-drag_coef = 0
-anharmonicity = -200 * u.MHz
+drag_coef = 0.474
+anharmonicity = qubit_anharmonicity
 AC_stark_detuning = 0 * u.MHz
 
-x180_len = 40
+x180_len = square_pi_len
 x180_sigma = x180_len / 5
-x180_amp = 0.35
+x180_amp = square_pi_amp
 x180_wf, x180_der_wf = np.array(
     drag_gaussian_pulse_waveforms(x180_amp, x180_len, x180_sigma, drag_coef, anharmonicity, AC_stark_detuning)
 )
@@ -269,20 +275,17 @@ config = {
 
             },
         },
-        "qubit2": {
+        "qubit_ef": {
             "mixInputs": {
-                "I": (con, qubit_args['IQ_input']['I']),
-                "Q": (con, qubit_args['IQ_input']['Q']),
+                "I": ("con1", 3),
+                "Q": ("con1", 4),
                 "lo_frequency": qubit_LO,
-                "mixer": "mixer_qubit2",
+                "mixer": "mixer_qubit_ef",
             },
-            "intermediate_frequency": qubit_IF,
+            "intermediate_frequency": qubit_ef_IF,
             "operations": {
-                "x180": "x180_pulse",
-                "x90": "x90_pulse",
-                "-x90": "-x90_pulse",
-                "y90": "y90_pulse",
-                "-y90": "-y90_pulse",
+                "cw": "const_pulse",
+                "saturation": "saturation_pulse",
             },
         },
         "resonator": {
@@ -344,7 +347,7 @@ config = {
 
         "x180_pulse": {
             "operation": "control",
-            "length": square_pi_len,
+            "length": x180_len,
             "waveforms": {
                 "I": "x180_I_wf",
                 "Q": "x180_Q_wf",
@@ -352,7 +355,7 @@ config = {
         },
         "y180_pulse": {
             "operation": "control",
-            "length": square_pi_len,
+            "length": x180_len,
             "waveforms": {
                 "I": "y180_I_wf",
                 "Q": "y180_Q_wf",
@@ -360,7 +363,7 @@ config = {
         },
         "x90_pulse": {
             "operation": "control",
-            "length": square_pi_len,
+            "length": x90_len,
             "waveforms": {
                 "I": "x90_I_wf",
                 "Q": "x90_Q_wf",
@@ -368,7 +371,7 @@ config = {
         },
         "-x90_pulse": {
             "operation": "control",
-            "length": square_pi_len,
+            "length": x90_len,
             "waveforms": {
                 "I": "minus_x90_I_wf",
                 "Q": "minus_x90_Q_wf",
@@ -376,7 +379,7 @@ config = {
         },
         "y90_pulse": {
             "operation": "control",
-            "length": square_pi_len,
+            "length": x90_len,
             "waveforms": {
                 "I": "y90_I_wf",
                 "Q": "y90_Q_wf",
@@ -384,7 +387,7 @@ config = {
         },
         "-y90_pulse": {
             "operation": "control",
-            "length": square_pi_len,
+            "length": x90_len,
             "waveforms": {
                 "I": "minus_y90_I_wf",
                 "Q": "minus_y90_Q_wf",
@@ -426,18 +429,18 @@ config = {
         "square_pi_wf": {"type": "constant", "sample": square_pi_amp},
         "square_pi_half_wf": {"type": "constant", "sample": square_pi_amp / 2},
         "zero_wf": {"type": "constant", "sample": 0.0},
-        "x90_I_wf": {"type": "constant", "sample": 0},
-        "x90_Q_wf": {"type": "constant", "sample": square_pi_amp / 2},
-        "x180_I_wf": {"type": "constant", "sample": 0},
-        "x180_Q_wf": {"type": "constant", "sample": qubit_args['pi_pulse_amplitude']},
-        "minus_x90_I_wf": {"type": "constant", "sample": 0},
-        "minus_x90_Q_wf": {"type": "constant", "sample": -square_pi_amp / 2},
-        "y90_I_wf": {"type": "constant", "sample": -square_pi_amp / 2},
-        "y90_Q_wf": {"type": "constant", "sample": 0},
-        "y180_I_wf": {"type": "constant", "sample": qubit_args['pi_pulse_amplitude']},
-        "y180_Q_wf": {"type": "constant", "sample": 0},
-        "minus_y90_I_wf": {"type": "constant", "sample": qubit_args['pi_pulse_amplitude'] / 2},
-        "minus_y90_Q_wf": {"type": "constant", "sample": 0},
+        "x90_I_wf": {"type": "arbitrary", "samples": x90_I_wf.tolist()},
+        "x90_Q_wf": {"type": "arbitrary", "samples": x90_Q_wf.tolist()},
+        "x180_I_wf": {"type": "arbitrary", "samples": x180_I_wf.tolist()},
+        "x180_Q_wf": {"type": "arbitrary", "samples": x180_Q_wf.tolist()},
+        "minus_x90_I_wf": {"type": "arbitrary", "samples": minus_x90_I_wf.tolist()},
+        "minus_x90_Q_wf": {"type": "arbitrary", "samples": minus_x90_Q_wf.tolist()},
+        "y90_Q_wf": {"type": "arbitrary", "samples": y90_Q_wf.tolist()},
+        "y90_I_wf": {"type": "arbitrary", "samples": y90_I_wf.tolist()},
+        "y180_Q_wf": {"type": "arbitrary", "samples": y180_Q_wf.tolist()},
+        "y180_I_wf": {"type": "arbitrary", "samples": y180_I_wf.tolist()},
+        "minus_y90_Q_wf": {"type": "arbitrary", "samples": minus_y90_Q_wf.tolist()},
+        "minus_y90_I_wf": {"type": "arbitrary", "samples": minus_y90_I_wf.tolist()},
         "y360_I_wf": {"type": "constant", "sample": square_pi_amp * 2},
         "y360_Q_wf": {"type": "constant", "sample": 0},
         "readout_wf": {"type": "constant", "sample": readout_amp},

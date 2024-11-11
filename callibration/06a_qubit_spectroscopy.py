@@ -5,13 +5,14 @@ from experiments_objects.qubit_spectroscopy import Qubit_Spec
 if __name__ == "__main__":
     args = {
         'qubit': 'qubit4',
-        'n_avg': 1000,
+        'n_avg': 2000,
         'N': 101,
-        'span': 50 * u.MHz,
+        'span': 1 * u.MHz,
         'state_discrimination': True,
-        'pulse_amplitude': 0.01,
+        'pulse_amplitude': 0.0002,
         'pulse_length': 40 * u.us,
-        'state_measurement_stretch': True
+        'state_measurement_stretch': True,
+        'two_photon': False
     }
 
     qubit_spec = Qubit_Spec(**args)

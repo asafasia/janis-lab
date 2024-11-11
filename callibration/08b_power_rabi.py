@@ -18,6 +18,7 @@ n_a = 100
 amplitudes = np.linspace(0, 1, n_a)
 state_discrimination = True
 num_pis = 4  # Number of pi pulses in the sequence
+simulate = False
 
 with program() as power_rabi:
     n = declare(int)  # QUA variable for the averaging loop
@@ -65,10 +66,9 @@ qmm = QuantumMachinesManager(host=qm_host, port=qm_port)
 ###########################
 # Run or Simulate Program #
 ###########################
-simulate = False
 
 if simulate:
-    simulation_config = SimulationConfig(duration=10_000)  # In clock cycles = 4ns
+    simulation_config = SimulationConfig(duration=10_00)  # In clock cycles = 4ns
     job = qmm.simulate(config, power_rabi, simulation_config)
     job.get_simulated_samples().con1.plot()
     plt.show()
@@ -85,7 +85,7 @@ else:
         progress_counter(iteration, n_avg, start_time=results.get_start_time())
 
     # %%
-    x = amplitudes * pi_pulse_amplitude * num_pis
+    x = amplitudes * x180_amp * num_pis
     # y = state
     # y = R
     y = state

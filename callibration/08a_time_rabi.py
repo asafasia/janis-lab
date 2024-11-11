@@ -129,7 +129,7 @@ else:
         plt.title(f"Time Rabi")
         plt.xlabel("Rabi pulse duration [ns]")
         plt.ylabel("I quadrature [V]")
-        print(f"Optimal x180_len = {round(1 / rabi_fit['f'][0] / 2 / 4) * 4} ns for {pi_pulse_amplitude:} V")
+        print(f"Optimal x180_len = {round(1 / rabi_fit['f'][0] / 2 / 4) * 4} ns for {square_pi_amp:} V")
     except (Exception,):
         pass
 
@@ -141,7 +141,7 @@ else:
     meta_data["user"] = "Asaf"
     meta_data["n_avg"] = {
         "n_avg": n_avg,
-        "amplitude": amplitude * pi_pulse_amplitude,
+        "amplitude": amplitude * square_pi_amp,
     }
     meta_data["args"] = args
 

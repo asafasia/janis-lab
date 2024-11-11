@@ -89,6 +89,7 @@ else:
     print('s')
     plt.title("X Pulse rep experiment")
     y = state
+    y = state_measurement_stretch(fid_matrix, y)
     plt.plot(range(n_pis), y, '-')
     plt.plot(range(n_pis), y, 'r.', label=f'pi pulse = {qubit_args["pi_pulse_amplitude"]}')
     plt.plot(range(1, n_pis - 1, 2), y[1:-2:2], 'g-')
